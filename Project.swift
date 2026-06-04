@@ -9,7 +9,13 @@ let project = Project(
             product: .app,
             bundleId: "us.caro.alex.CleanApple",
             deploymentTargets: .macOS("15.0"),
-            infoPlist: .default,
+            infoPlist: .extendingDefault(with: [
+                "NSDesktopFolderUsageDescription": "CleanApple requires access to your Desktop to calculate folder sizes.",
+                "NSDocumentsFolderUsageDescription": "CleanApple requires access to your Documents to calculate folder sizes.",
+                "NSDownloadsFolderUsageDescription": "CleanApple requires access to your Downloads to calculate folder sizes.",
+                "NSRemovableVolumesUsageDescription": "CleanApple requires access to external drives to scan their contents.",
+                "NSNetworkVolumesUsageDescription": "CleanApple requires access to network drives to scan their contents."
+            ]),
             sources: ["Targets/CleanApple/Sources/**"],
             resources: ["Targets/CleanApple/Resources/**"],
             entitlements: "Targets/CleanApple/Resources/CleanApple.entitlements"
@@ -18,7 +24,7 @@ let project = Project(
             name: "CleanAppleTests",
             destinations: .macOS,
             product: .unitTests,
-            bundleId: "com.cleanapple.apptests",
+            bundleId: "us.caro.alex.CleanAppleTests",
             deploymentTargets: .macOS("15.0"),
             infoPlist: .default,
             sources: ["Targets/CleanApple/Tests/**"],

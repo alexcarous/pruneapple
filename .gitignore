@@ -23,17 +23,6 @@ xcuserdata/
 *.xcuserstate
 .swiftpm/
 
-# Python (cleaning up the scaffold)
-__pycache__/
-*.py[cod]
-*$py.class
-.venv/
-venv/
-ENV/
-env/
-.pytest_cache/
-.coverage
-htmlcov/
 
 # Project Specific
 *.app

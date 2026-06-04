@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import AppKit
+import os
 
 @Observable
 @MainActor
@@ -15,6 +16,7 @@ public final class DiskAnalyzer: Sendable {
     public var skippedURLs: [URL] = []
     
     private let engine = ScannerEngine()
+    private let logger = Logger(subsystem: "us.caro.alex.CleanApple", category: "Scanner")
     
     public init() {}
     
@@ -56,9 +58,9 @@ public final class DiskAnalyzer: Sendable {
                     performanceTime: .default
                 )
             } catch is CancellationError {
-                print("Scan cancelled.")
+                self.logger.info("Scan cancelled.")
             } catch {
-                print("Scan failed: \(error)")
+                self.logger.error("Scan failed: \(error.localizedDescription)")
                 self.errorMessage = error.localizedDescription
             }
             
