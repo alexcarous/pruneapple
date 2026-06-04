@@ -58,9 +58,9 @@ struct ResultTableView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
+            HStack(alignment: .center) {
                 Picker("Display", selection: $displayMode) {
-                    Image(systemName: "list.bullet.indent").tag(DisplayMode.outline)
+                    Image(systemName: "list.bullet").tag(DisplayMode.outline)
                     Image(systemName: "chart.pie").tag(DisplayMode.sunburst)
                 }
                 .pickerStyle(.segmented)
