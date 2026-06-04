@@ -8,6 +8,7 @@ struct SettingsView: View {
     enum Tab: String, CaseIterable, Identifiable {
         case permissions = "Permissions"
         case advanced = "Advanced"
+        case about = "About"
         
         var id: String { self.rawValue }
         
@@ -15,6 +16,7 @@ struct SettingsView: View {
             switch self {
             case .permissions: return "lock.shield"
             case .advanced: return "gearshape.2"
+            case .about: return "info.circle"
             }
         }
     }
@@ -32,9 +34,15 @@ struct SettingsView: View {
                     Label(Tab.advanced.rawValue, systemImage: Tab.advanced.icon)
                 }
                 .tag(Tab.advanced)
+            
+            AboutTab()
+                .tabItem {
+                    Label(Tab.about.rawValue, systemImage: Tab.about.icon)
+                }
+                .tag(Tab.about)
         }
         .environment(permissionManager)
-        .frame(width: 520, height: 420)
+        .frame(width: 520, height: 440)
         .padding()
     }
 }
@@ -227,5 +235,57 @@ struct AdvancedTab: View {
             }
         }
         .padding()
+    }
+}
+
+struct AboutTab: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "internaldrive.fill")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 64, height: 64)
+                .foregroundColor(.accentColor)
+            
+            VStack(spacing: 4) {
+                Text("CleanApple")
+                    .font(.title)
+                    .fontWeight(.bold)
+                Text("Version 1.0.0 (Build 1)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            
+            Divider()
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Legalese & Licensing")
+                    .font(.headline)
+                
+                ScrollView {
+                    Text("""
+                    MIT License
+
+                    Copyright (c) 2026 Alex Carous
+
+                    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+                    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+                    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+                    """)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundColor(.secondary)
+                    .padding(8)
+                }
+                .frame(height: 120)
+                .background(Color(NSColor.controlBackgroundColor))
+                .cornerRadius(4)
+                .border(Color.secondary.opacity(0.2), width: 0.5)
+            }
+            
+            Spacer()
+        }
+        .padding(.vertical, 8)
     }
 }
