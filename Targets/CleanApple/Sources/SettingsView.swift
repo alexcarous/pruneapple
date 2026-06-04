@@ -254,6 +254,11 @@ struct AboutTab: View {
                 Text("Version 1.0.0 (Build 1)")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+                
+                Link("alex.caro.us", destination: URL(string: "https://alex.caro.us")!)
+                    .font(.subheadline)
+                    .foregroundColor(.accentColor)
+                    .padding(.top, 2)
             }
             
             Divider()
