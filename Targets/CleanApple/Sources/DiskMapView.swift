@@ -5,8 +5,6 @@ struct DiskMapView: View {
     
     @State private var hoveredPath: [FileItem] = []
     
-    private let maxDepth = 4
-    
     private let byteFormatter: ByteCountFormatter = {
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
@@ -17,7 +15,7 @@ struct DiskMapView: View {
         GeometryReader { proxy in
             let size = proxy.size
             let center = CGPoint(x: size.width / 2, y: size.height / 2)
-            let maxRadius = min(size.width, size.height) / 2 * 0.95
+            let maxRadius = min(size.width, size.height) / 2 * Metrics.diskMapMaxRadiusRatio
             
             ZStack {
                 Canvas { context, size in
@@ -42,8 +40,8 @@ struct DiskMapView: View {
                 }
                 
                 if let hovered = hoveredPath.last {
-                    VStack(spacing: 4) {
-                        Text(hovered.name)
+                    VStack(spacing: Metrics.spacingVerySmall) {
+                        Text(hovered.name == "Other Smaller Files" ? String(localized: "Other Smaller Files") : hovered.name)
                             .font(.headline)
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
@@ -52,18 +50,18 @@ struct DiskMapView: View {
                             .monospacedDigit()
                         
                         if hoveredPath.count > 1 {
-                            Text(hoveredPath.dropLast().map { $0.name }.joined(separator: " ▸ "))
+                            Text(hoveredPath.dropLast().map { $0.name == "Other Smaller Files" ? String(localized: "Other Smaller Files") : $0.name }.joined(separator: " ▸ "))
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                                 .lineLimit(1)
                                 .truncationMode(.head)
                         }
                     }
-                    .padding(10)
+                    .padding(Metrics.paddingStandard)
                     .background(.regularMaterial)
-                    .cornerRadius(8)
-                    .shadow(radius: 4)
-                    .frame(width: 250)
+                    .cornerRadius(Metrics.cornerRadiusMedium)
+                    .shadow(radius: Metrics.cornerRadiusSmall)
+                    .frame(width: Metrics.diskMapTooltipWidth)
                     .position(x: center.x, y: center.y)
                     .allowsHitTesting(false)
                 }
@@ -72,13 +70,13 @@ struct DiskMapView: View {
     }
     
     private func ringWidth(for depth: Int, maxRadius: CGFloat) -> CGFloat {
-        let centerRadius = maxRadius * 0.2
+        let centerRadius = maxRadius * Metrics.diskMapCenterRadiusRatio
         let remaining = maxRadius - centerRadius
-        return remaining / CGFloat(maxDepth)
+        return remaining / CGFloat(Metrics.diskMapMaxDepth)
     }
     
     private func radiusRange(for depth: Int, maxRadius: CGFloat) -> ClosedRange<CGFloat> {
-        let centerRadius = maxRadius * 0.2
+        let centerRadius = maxRadius * Metrics.diskMapCenterRadiusRatio
         if depth == 0 {
             return 0...centerRadius
         }
@@ -88,7 +86,7 @@ struct DiskMapView: View {
     }
     
     private func drawNode(item: FileItem, context: inout GraphicsContext, center: CGPoint, radius: CGFloat, startAngle: Angle, endAngle: Angle, depth: Int) {
-        if depth > maxDepth { return }
+        if depth > Metrics.diskMapMaxDepth { return }
         
         let range = radiusRange(for: depth, maxRadius: radius)
         let path = Path { p in
@@ -101,9 +99,9 @@ struct DiskMapView: View {
         let color = colorForDepth(depth, item: item, isHovered: isHovered)
         
         context.fill(path, with: .color(color))
-        context.stroke(path, with: .color(Color.primary.opacity(0.15)), lineWidth: 0.5)
+        context.stroke(path, with: .color(Color.primary.opacity(0.15)), lineWidth: Metrics.diskMapLineWidth)
         
-        guard let children = item.children, !children.isEmpty, depth < maxDepth else { return }
+        guard let children = item.children, !children.isEmpty, depth < Metrics.diskMapMaxDepth else { return }
         
         let totalAngle = endAngle.radians - startAngle.radians
         let totalSize = max(item.physicalSize, children.reduce(0) { $0 + $1.physicalSize })
@@ -114,7 +112,7 @@ struct DiskMapView: View {
             let childAngle = totalAngle * childFraction
             
             // Only draw slices that represent at least 0.5% of parent size and are visible
-            if childFraction >= 0.005 && childAngle > 0.008 {
+            if childFraction >= Metrics.diskMapMinFraction && childAngle > Metrics.diskMapMinAngle {
                 let childEnd = currentStart + childAngle
                 drawNode(item: child, context: &context, center: center, radius: radius, startAngle: .radians(currentStart), endAngle: .radians(childEnd), depth: depth + 1)
             }
@@ -144,7 +142,7 @@ struct DiskMapView: View {
     }
     
     private func hitTestNode(item: FileItem, r: CGFloat, angle: CGFloat, startAngle: CGFloat, endAngle: CGFloat, depth: Int, maxRadius: CGFloat, result: inout [FileItem]) {
-        if depth > maxDepth { return }
+        if depth > Metrics.diskMapMaxDepth { return }
         
         let range = radiusRange(for: depth, maxRadius: maxRadius)
         
@@ -155,7 +153,7 @@ struct DiskMapView: View {
         
         if r > range.upperBound {
             result.append(item)
-            guard let children = item.children, !children.isEmpty, depth < maxDepth else { return }
+            guard let children = item.children, !children.isEmpty, depth < Metrics.diskMapMaxDepth else { return }
             
             let totalAngle = endAngle - startAngle
             let totalSize = max(item.physicalSize, children.reduce(0) { $0 + $1.physicalSize })
@@ -166,7 +164,7 @@ struct DiskMapView: View {
                 let childAngle = totalAngle * childFraction
                 
                 // Keep hit testing aligned with culled slices
-                if childFraction >= 0.005 && childAngle > 0.008 {
+                if childFraction >= Metrics.diskMapMinFraction && childAngle > Metrics.diskMapMinAngle {
                     let childEnd = currentStart + childAngle
                     if angle >= currentStart && angle <= childEnd {
                         hitTestNode(item: child, r: r, angle: angle, startAngle: currentStart, endAngle: childEnd, depth: depth + 1, maxRadius: maxRadius, result: &result)
