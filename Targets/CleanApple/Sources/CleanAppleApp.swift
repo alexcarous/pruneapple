@@ -27,14 +27,22 @@ struct CleanAppleApp: App {
         }
         
         MenuBarExtra {
-            MenuBarView()
-                .environment(diskAnalyzer)
-                .frame(width: 280, height: 160)
+            Button("Open CleanApple") {
+                NSApp.activate(ignoringOtherApps: true)
+                if let window = NSApp.windows.first {
+                    window.makeKeyAndOrderFront(nil)
+                }
+            }
+            
+            Divider()
+            
+            Button("Quit CleanApple") {
+                NSApplication.shared.terminate(nil)
+            }
         } label: {
             MenuBarLabel()
                 .environment(diskAnalyzer)
         }
-        .menuBarExtraStyle(.window)
     }
 }
 
@@ -56,9 +64,7 @@ struct MainView: View {
         }
         .dropDestination(for: URL.self) { items, _ in
             guard let firstURL = items.first else { return false }
-            Task {
-                await diskAnalyzer.startScan(at: firstURL)
-            }
+            diskAnalyzer.startScan(at: firstURL)
             return true
         } isTargeted: { targeted in
             dragOver = targeted
@@ -123,9 +129,7 @@ struct WelcomeView: View {
         
         openPanel.begin { response in
             if response == .OK, let url = openPanel.url {
-                Task {
-                    await diskAnalyzer.startScan(at: url)
-                }
+                diskAnalyzer.startScan(at: url)
             }
         }
     }
@@ -164,6 +168,12 @@ struct ScanningProgressView: View {
                     .truncationMode(.middle)
                     .padding(.horizontal, 40)
             }
+            
+            Button("Stop Scan", role: .destructive) {
+                diskAnalyzer.cancelScan()
+            }
+            .buttonStyle(.bordered)
+            .padding(.top, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -183,50 +193,4 @@ struct MenuBarLabel: View {
     }
 }
 
-struct MenuBarView: View {
-    @Environment(DiskAnalyzer.self) private var diskAnalyzer
-    
-    private let byteFormatter: ByteCountFormatter = {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        return formatter
-    }()
-    
-    var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text("CleanApple Scan")
-                    .font(.headline)
-                Spacer()
-                if diskAnalyzer.isScanning {
-                    ProgressView()
-                        .controlSize(.small)
-                }
-            }
-            
-            Divider()
-            
-            if diskAnalyzer.isScanning {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Scanned: \(byteFormatter.string(fromByteCount: diskAnalyzer.progressBytes))")
-                    Text("Files: \(diskAnalyzer.progressFiles)")
-                }
-                .font(.body)
-                .monospacedDigit()
-            } else if let rootItem = diskAnalyzer.rootItem {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Last Scan: \(rootItem.name)")
-                        .fontWeight(.semibold)
-                    Text("Total Space: \(byteFormatter.string(fromByteCount: rootItem.physicalSize))")
-                }
-                .font(.body)
-            } else {
-                Text("No active scans.")
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-        }
-        .padding()
-    }
-}
+

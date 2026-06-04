@@ -110,7 +110,7 @@ struct ResultTableView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(.orange)
-                    Text("Some folders were skipped because CleanApple lacks permission to read them.")
+                    Text("Some folders were skipped due to permission errors. If you just granted access, please restart CleanApple.")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     

@@ -5,7 +5,7 @@ struct DiskMapView: View {
     
     @State private var hoveredPath: [FileItem] = []
     
-    private let maxDepth = 6
+    private let maxDepth = 4
     
     private let byteFormatter: ByteCountFormatter = {
         let formatter = ByteCountFormatter()
@@ -113,8 +113,8 @@ struct DiskMapView: View {
             let childFraction = totalSize > 0 ? Double(child.physicalSize) / Double(totalSize) : 0
             let childAngle = totalAngle * childFraction
             
-            // Only draw slices that are large enough to be visible (e.g. > 0.5 degrees)
-            if childAngle > 0.008 {
+            // Only draw slices that represent at least 0.5% of parent size and are visible
+            if childFraction >= 0.005 && childAngle > 0.008 {
                 let childEnd = currentStart + childAngle
                 drawNode(item: child, context: &context, center: center, radius: radius, startAngle: .radians(currentStart), endAngle: .radians(childEnd), depth: depth + 1)
             }
@@ -165,7 +165,8 @@ struct DiskMapView: View {
                 let childFraction = totalSize > 0 ? Double(child.physicalSize) / Double(totalSize) : 0
                 let childAngle = totalAngle * childFraction
                 
-                if childAngle > 0.008 {
+                // Keep hit testing aligned with culled slices
+                if childFraction >= 0.005 && childAngle > 0.008 {
                     let childEnd = currentStart + childAngle
                     if angle >= currentStart && angle <= childEnd {
                         hitTestNode(item: child, r: r, angle: angle, startAngle: currentStart, endAngle: childEnd, depth: depth + 1, maxRadius: maxRadius, result: &result)

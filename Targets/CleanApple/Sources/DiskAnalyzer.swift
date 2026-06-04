@@ -18,7 +18,11 @@ public final class DiskAnalyzer: Sendable {
     
     public init() {}
     
-    public func startScan(at url: URL) async {
+    private var scanTask: Task<Void, Never>?
+    
+    public func startScan(at url: URL) {
+        scanTask?.cancel()
+        
         isScanning = true
         progressBytes = 0
         progressFiles = 0
@@ -28,30 +32,44 @@ public final class DiskAnalyzer: Sendable {
         errorMessage = nil
         skippedURLs = []
         
-        do {
-            let result = try await engine.scan(at: url) { [weak self] progress in
-                guard let self = self else { return }
-                Task { @MainActor in
-                    self.progressBytes = progress.bytesScanned
-                    self.progressFiles = progress.filesCount
-                    self.currentScanningPath = progress.currentScanningPath
+        scanTask = Task { [weak self] in
+            guard let self = self else { return }
+            do {
+                let result = try await self.engine.scan(at: url) { progress in
+                    Task { @MainActor in
+                        guard !Task.isCancelled else { return }
+                        self.progressBytes = progress.bytesScanned
+                        self.progressFiles = progress.filesCount
+                        self.currentScanningPath = progress.currentScanningPath
+                    }
                 }
+                
+                guard !Task.isCancelled else { return }
+                
+                self.rootItem = result.rootItem
+                self.skippedURLs = result.skippedURLs
+                self.progressBytes = result.rootItem.physicalSize
+                
+                // Trigger physical trackpad feedback on completion
+                NSHapticFeedbackManager.defaultPerformer.perform(
+                    .alignment,
+                    performanceTime: .default
+                )
+            } catch is CancellationError {
+                print("Scan cancelled.")
+            } catch {
+                print("Scan failed: \(error)")
+                self.errorMessage = error.localizedDescription
             }
             
-            self.rootItem = result.rootItem
-            self.skippedURLs = result.skippedURLs
-            self.progressBytes = result.rootItem.physicalSize
-            
-            // Trigger physical trackpad feedback on completion
-            NSHapticFeedbackManager.defaultPerformer.perform(
-                .alignment,
-                performanceTime: .default
-            )
-        } catch {
-            print("Scan failed: \(error)")
-            errorMessage = error.localizedDescription
+            self.isScanning = false
         }
-        
+    }
+    
+    public func cancelScan() {
+        scanTask?.cancel()
+        scanTask = nil
         isScanning = false
+        rootItem = nil
     }
 }

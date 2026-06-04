@@ -77,13 +77,13 @@ public actor ScannerEngine {
         let canonicalPath = (try? rootURL.resourceValues(forKeys: [.canonicalPathKey]))?.canonicalPath ?? rootURL.path
         let resolvedRootURL = URL(fileURLWithPath: canonicalPath)
         
+        let rootResourceValues = try? resolvedRootURL.resourceValues(forKeys: [.volumeUUIDStringKey])
+        let rootVolumeUUID = rootResourceValues?.volumeUUIDString
+        
         final class SkippedTracking: @unchecked Sendable {
             var urls = [URL]()
-            private let lock = NSLock()
             func add(_ url: URL) {
-                lock.lock()
                 urls.append(url)
-                lock.unlock()
             }
         }
         let skippedTracking = SkippedTracking()
@@ -115,6 +115,7 @@ public actor ScannerEngine {
             
             var subdirectories: [URL: DirectoryNode] = [:]
             var files: [FileItem] = []
+            var smallerFilesSize: Int64 = 0
             var trimmedFilesSize: Int64 = 0
             
             init(url: URL, isDirectory: Bool = true, isPackage: Bool = false, physicalSize: Int64 = 0, isDatalessCloudItem: Bool = false) {
@@ -140,16 +141,27 @@ public actor ScannerEngine {
             func toFileItem() -> FileItem {
                 let subDirItems = subdirectories.values.map { $0.toFileItem() }
                 
-                // Trim only files, NEVER directories
                 var finalFiles = files
-                if trimmedFilesSize > 0 || finalFiles.count > 250 {
+                let totalSmallAndTrimmed = smallerFilesSize + trimmedFilesSize
+                if totalSmallAndTrimmed > 0 || finalFiles.count > 250 {
                     finalFiles.sort { $0.physicalSize > $1.physicalSize }
-                    let top = Array(finalFiles.prefix(250))
-                    let remaining = finalFiles.suffix(from: 250)
-                    let remainingSize = remaining.reduce(0) { $0 + $1.physicalSize } + trimmedFilesSize
-                    let otherURL = url.appendingPathComponent("Other Smaller Files")
-                    let otherItem = FileItem(url: otherURL, isDirectory: false, isPackage: false, physicalSize: remainingSize)
-                    finalFiles = top + [otherItem]
+                    let limit = min(250, finalFiles.count)
+                    let top = Array(finalFiles.prefix(limit))
+                    let remainingSize: Int64
+                    if finalFiles.count > limit {
+                        let remaining = finalFiles.suffix(from: limit)
+                        remainingSize = remaining.reduce(0) { $0 + $1.physicalSize } + totalSmallAndTrimmed
+                    } else {
+                        remainingSize = totalSmallAndTrimmed
+                    }
+                    
+                    if remainingSize > 0 {
+                        let otherURL = url.appendingPathComponent("Other Smaller Files")
+                        let otherItem = FileItem(url: otherURL, isDirectory: false, isPackage: false, physicalSize: remainingSize)
+                        finalFiles = top + [otherItem]
+                    } else {
+                        finalFiles = top
+                    }
                 }
                 
                 var allChildren = finalFiles + subDirItems
@@ -191,6 +203,16 @@ public actor ScannerEngine {
                 }
                 
                 let isDirectory = resourceValues.isDirectory ?? false
+                
+                // Volume Boundary Check: Skip items on different volumes to prevent scanning external disks / firmlink loops
+                let volumeID = resourceValues.volumeUUIDString
+                if let rootVolumeUUID = rootVolumeUUID, let volumeID = volumeID, volumeID != rootVolumeUUID {
+                    if isDirectory {
+                        enumerator.skipDescendants()
+                    }
+                    return
+                }
+                
                 let isPackage = resourceValues.isPackage ?? false
                 let isUbiquitous = resourceValues.isUbiquitousItem ?? false
                 let downloadStatus = resourceValues.ubiquitousItemDownloadingStatus
@@ -209,11 +231,12 @@ public actor ScannerEngine {
                     let fileAllocatedSize = resourceValues.fileAllocatedSize
                     let physicalSize = isDataless ? 0 : Int64(allocatedSize ?? fileAllocatedSize ?? 0)
                     let inode = resourceValues.fileResourceIdentifier
-                    let volumeID = resourceValues.volumeUUIDString ?? ""
+                    let volumeUUID = volumeID ?? ""
                     
                     var shouldCount = true
-                    if let inodeData = inode as? Data {
-                        let identity = FileIdentity(volumeID: volumeID, inodeData: inodeData)
+                    // Only track hard links for files larger than 1MB to avoid inode set memory explosion
+                    if physicalSize > 1_024_000, let inodeData = inode as? Data {
+                        let identity = FileIdentity(volumeID: volumeUUID, inodeData: inodeData)
                         if seenInodes.contains(identity) {
                             shouldCount = false
                         } else {
@@ -240,8 +263,13 @@ public actor ScannerEngine {
                         if physicalSize > 0 || isDataless {
                             let immediateParent = url.deletingLastPathComponent()
                             if let parentNode = dirNodes[immediateParent] {
-                                let fileItem = FileItem(url: url, isDirectory: false, isPackage: isPackage, physicalSize: physicalSize, isDatalessCloudItem: isDataless)
-                                parentNode.addFile(fileItem)
+                                // Files smaller than 10MB are aggregated to avoid memory footprint bloat
+                                if physicalSize >= 10 * 1024 * 1024 || isDataless {
+                                    let fileItem = FileItem(url: url, isDirectory: false, isPackage: isPackage, physicalSize: physicalSize, isDatalessCloudItem: isDataless)
+                                    parentNode.addFile(fileItem)
+                                } else {
+                                    parentNode.smallerFilesSize += physicalSize
+                                }
                             }
                         }
                     }

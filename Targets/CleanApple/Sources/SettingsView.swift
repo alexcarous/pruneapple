@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(DiskAnalyzer.self) private var diskAnalyzer
-    @State private var permissionManager = PermissionManager.shared
+    private let permissionManager = PermissionManager.shared
     @State private var activeTab: Tab = .permissions
     
     enum Tab: String, CaseIterable, Identifiable {
@@ -89,6 +89,7 @@ struct PermissionsTab: View {
                         InstructionRow(step: "1", text: "Click the \"Open System Settings\" button below.")
                         InstructionRow(step: "2", text: "Locate or add \"CleanApple\" in the Full Disk Access list.")
                         InstructionRow(step: "3", text: "Enable the switch next to CleanApple to grant access.")
+                        InstructionRow(step: "4", text: "Restart CleanApple if permissions do not apply immediately.")
                     }
                     
                     Button(action: {
@@ -105,7 +106,7 @@ struct PermissionsTab: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Permissions Active")
                         .font(.headline)
-                    Text("All scanned folders will be parsed correctly. If you experience missing files, make sure the directory doesn't require separate app-specific sandbox approvals.")
+                    Text("All scanned folders will be parsed correctly. Note: If folders are still being skipped after granting access, you may need to restart CleanApple for the System FDA permissions to take full effect.")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }

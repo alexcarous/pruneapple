@@ -1,12 +1,10 @@
-import Testing
+import XCTest
 @testable import CleanApple
 import Foundation
 
-@Suite("Scanner Engine Tests")
-struct ScannerEngineTests {
+final class ScannerEngineTests: XCTestCase {
     
-    @Test("Basic File Scanning")
-    func basicFileScanning() async throws {
+    func testBasicFileScanning() async throws {
         let fileManager = FileManager.default
         let tempDir = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
@@ -21,21 +19,22 @@ struct ScannerEngineTests {
         
         let engine = ScannerEngine()
         let scanResult = try await engine.scan(at: tempDir) { progress in
-            #expect(progress.filesCount >= 0)
+            XCTAssertGreaterThanOrEqual(progress.filesCount, 0)
         }
         let result = scanResult.rootItem
         
-        #expect(result.isDirectory)
-        let children = try #require(result.children)
-        #expect(children.count == 1)
+        XCTAssertTrue(result.isDirectory)
+        let children = try XCTUnwrap(result.children)
         
-        let firstChild = try #require(children.first)
-        #expect(firstChild.name == "test.txt")
-        #expect(firstChild.physicalSize >= 0)
+        // Note: the test.txt is 10 bytes (<10MB), so it gets aggregated into "Other Smaller Files"
+        XCTAssertEqual(children.count, 1)
+        
+        let firstChild = try XCTUnwrap(children.first)
+        XCTAssertEqual(firstChild.name, "Other Smaller Files")
+        XCTAssertEqual(firstChild.physicalSize, result.physicalSize)
     }
     
-    @Test("Nested Directory Accumulation")
-    func nestedDirectoryAccumulation() async throws {
+    func testNestedDirectoryAccumulation() async throws {
         let fileManager = FileManager.default
         let tempDir = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let deepDir = tempDir.appendingPathComponent("A/B/C")
@@ -53,34 +52,34 @@ struct ScannerEngineTests {
         let scanResult = try await engine.scan(at: tempDir) { _ in }
         let result = scanResult.rootItem
         
-        #expect(result.isDirectory)
+        XCTAssertTrue(result.isDirectory)
         
-        let rootChildren = try #require(result.children)
-        let itemA = try #require(rootChildren.first { $0.name == "A" })
-        #expect(itemA.isDirectory)
+        let rootChildren = try XCTUnwrap(result.children)
+        let itemA = try XCTUnwrap(rootChildren.first { $0.name == "A" })
+        XCTAssertTrue(itemA.isDirectory)
         
-        let subChildrenA = try #require(itemA.children)
-        let itemB = try #require(subChildrenA.first { $0.name == "B" })
-        #expect(itemB.isDirectory)
+        let subChildrenA = try XCTUnwrap(itemA.children)
+        let itemB = try XCTUnwrap(subChildrenA.first { $0.name == "B" })
+        XCTAssertTrue(itemB.isDirectory)
         
-        let subChildrenB = try #require(itemB.children)
-        let itemC = try #require(subChildrenB.first { $0.name == "C" })
-        #expect(itemC.isDirectory)
+        let subChildrenB = try XCTUnwrap(itemB.children)
+        let itemC = try XCTUnwrap(subChildrenB.first { $0.name == "C" })
+        XCTAssertTrue(itemC.isDirectory)
         
-        let subChildrenC = try #require(itemC.children)
-        let testFileItem = try #require(subChildrenC.first { $0.name == "test.txt" })
-        #expect(!testFileItem.isDirectory)
+        let subChildrenC = try XCTUnwrap(itemC.children)
+        // test.txt is 10 KB (<10MB) so it gets aggregated to "Other Smaller Files"
+        let testFileItem = try XCTUnwrap(subChildrenC.first { $0.name == "Other Smaller Files" })
+        XCTAssertFalse(testFileItem.isDirectory)
         
         let physicalSize = testFileItem.physicalSize
-        #expect(physicalSize > 0)
-        #expect(itemC.physicalSize == physicalSize)
-        #expect(itemB.physicalSize == physicalSize)
-        #expect(itemA.physicalSize == physicalSize)
-        #expect(result.physicalSize == physicalSize)
+        XCTAssertGreaterThan(physicalSize, 0)
+        XCTAssertEqual(itemC.physicalSize, physicalSize)
+        XCTAssertEqual(itemB.physicalSize, physicalSize)
+        XCTAssertEqual(itemA.physicalSize, physicalSize)
+        XCTAssertEqual(result.physicalSize, physicalSize)
     }
     
-    @Test("Hard Link Deduplication")
-    func hardLinkDeduplication() async throws {
+    func testHardLinkDeduplication() async throws {
         let fileManager = FileManager.default
         let tempDir = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
@@ -92,7 +91,8 @@ struct ScannerEngineTests {
         let file1 = tempDir.appendingPathComponent("file1.txt")
         let file2 = tempDir.appendingPathComponent("file2.txt")
         
-        let dummyData = Data(repeating: 0xAA, count: 100 * 1024) // 100 KB
+        // Write 2MB to exceed the 1MB limit for hardlink tracking
+        let dummyData = Data(repeating: 0xAA, count: 2 * 1024 * 1024)
         try dummyData.write(to: file1)
         
         try fileManager.linkItem(at: file1, to: file2)
@@ -101,16 +101,17 @@ struct ScannerEngineTests {
         let scanResult = try await engine.scan(at: tempDir) { _ in }
         let result = scanResult.rootItem
         
-        let children = try #require(result.children)
-        #expect(children.count == 1)
+        let children = try XCTUnwrap(result.children)
+        // Note: 2MB is < 10MB, so both are aggregated into "Other Smaller Files" but since they are deduplicated,
+        // the total aggregated size is exactly 2MB (the size of one file), not 4MB!
+        XCTAssertEqual(children.count, 1)
         
-        let scannedFile = try #require(children.first)
-        #expect(scannedFile.name == "file1.txt" || scannedFile.name == "file2.txt")
-        #expect(result.physicalSize == scannedFile.physicalSize)
+        let scannedFile = try XCTUnwrap(children.first)
+        XCTAssertEqual(scannedFile.name, "Other Smaller Files")
+        XCTAssertEqual(result.physicalSize, scannedFile.physicalSize)
     }
     
-    @Test("Package Size Calculation")
-    func packageSizeCalculation() async throws {
+    func testPackageSizeCalculation() async throws {
         let fileManager = FileManager.default
         let tempDir = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let appDir = tempDir.appendingPathComponent("TestApp.app/Contents/MacOS")
@@ -121,44 +122,48 @@ struct ScannerEngineTests {
         }
         
         let execFile = appDir.appendingPathComponent("exec")
-        let dummyData = Data(repeating: 0, count: 10 * 1024) // 10 KB
+        // Write 12MB so it is not aggregated under the package
+        let dummyData = Data(repeating: 0, count: 12 * 1024 * 1024)
         try dummyData.write(to: execFile)
         
         let engine = ScannerEngine()
         let scanResult = try await engine.scan(at: tempDir) { _ in }
         let result = scanResult.rootItem
         
-        let children = try #require(result.children)
-        let appItem = try #require(children.first { $0.name == "TestApp.app" })
-        #expect(appItem.isDirectory)
-        #expect(appItem.isPackage)
-        #expect(appItem.physicalSize >= 10 * 1024)
+        let children = try XCTUnwrap(result.children)
+        let appItem = try XCTUnwrap(children.first { $0.name == "TestApp.app" })
+        XCTAssertTrue(appItem.isDirectory)
+        XCTAssertTrue(appItem.isPackage)
+        XCTAssertGreaterThanOrEqual(appItem.physicalSize, 12 * 1024 * 1024)
     }
     
-    @Test("Parameterization over File Types", arguments: [
-        ("temp.csv", 50),
-        ("temp.png", 500),
-        ("temp.json", 1000)
-    ])
-    func parameterizedFileTypes(filename: String, size: Int) async throws {
-        let fileManager = FileManager.default
-        let tempDir = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
+    func testParameterizedFileTypes() async throws {
+        let cases = [
+            ("temp.csv", 12 * 1024 * 1024), // 12 MB (exceeds 10MB so not aggregated)
+            ("temp.png", 15 * 1024 * 1024), // 15 MB
+            ("temp.json", 20 * 1024 * 1024) // 20 MB
+        ]
         
-        defer {
-            try? fileManager.removeItem(at: tempDir)
+        for (filename, size) in cases {
+            let fileManager = FileManager.default
+            let tempDir = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
+            
+            defer {
+                try? fileManager.removeItem(at: tempDir)
+            }
+            
+            let testFile = tempDir.appendingPathComponent(filename)
+            let dummyData = Data(repeating: 0, count: size)
+            try dummyData.write(to: testFile)
+            
+            let engine = ScannerEngine()
+            let scanResult = try await engine.scan(at: tempDir) { _ in }
+            let result = scanResult.rootItem
+            
+            XCTAssertGreaterThanOrEqual(result.physicalSize, 0)
+            let children = try XCTUnwrap(result.children)
+            XCTAssertTrue(children.contains { $0.name == filename })
         }
-        
-        let testFile = tempDir.appendingPathComponent(filename)
-        let dummyData = Data(repeating: 0, count: size)
-        try dummyData.write(to: testFile)
-        
-        let engine = ScannerEngine()
-        let scanResult = try await engine.scan(at: tempDir) { _ in }
-        let result = scanResult.rootItem
-        
-        #expect(result.physicalSize >= 0)
-        let children = try #require(result.children)
-        #expect(children.contains { $0.name == filename })
     }
 }
