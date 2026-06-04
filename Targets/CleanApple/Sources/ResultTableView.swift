@@ -65,7 +65,6 @@ struct ResultTableView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(width: 100)
                 
                 Text("Physical Space Used")
                     .font(.headline)
