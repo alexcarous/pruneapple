@@ -59,6 +59,7 @@ public actor ScannerEngine {
         
         let keys: [URLResourceKey] = [
             .totalFileAllocatedSizeKey,
+            .fileAllocatedSizeKey,
             .fileResourceIdentifierKey,
             .isDirectoryKey,
             .isPackageKey,
@@ -68,8 +69,11 @@ public actor ScannerEngine {
             .volumeUUIDStringKey
         ]
         
+        let canonicalPath = (try? rootURL.resourceValues(forKeys: [.canonicalPathKey]))?.canonicalPath ?? rootURL.path
+        let resolvedRootURL = URL(fileURLWithPath: canonicalPath)
+        
         guard let enumerator = FileManager.default.enumerator(
-            at: rootURL,
+            at: resolvedRootURL,
             includingPropertiesForKeys: keys,
             options: [],
             errorHandler: { (url, error) -> Bool in
@@ -140,8 +144,8 @@ public actor ScannerEngine {
             }
         }
         
-        let rootNode = DirectoryNode(url: rootURL)
-        var dirNodes: [URL: DirectoryNode] = [rootURL: rootNode]
+        let rootNode = DirectoryNode(url: resolvedRootURL)
+        var dirNodes: [URL: DirectoryNode] = [resolvedRootURL: rootNode]
         
         var counter = 0
         
@@ -168,7 +172,9 @@ public actor ScannerEngine {
                         parentNode.subdirectories[url] = node
                     }
                 } else {
-                    let physicalSize = isDataless ? 0 : Int64(resourceValues.totalFileAllocatedSize ?? 0)
+                    let allocatedSize = resourceValues.totalFileAllocatedSize
+                    let fileAllocatedSize = resourceValues.fileAllocatedSize
+                    let physicalSize = isDataless ? 0 : Int64(allocatedSize ?? fileAllocatedSize ?? 0)
                     let inode = resourceValues.fileResourceIdentifier
                     let volumeID = resourceValues.volumeUUIDString ?? ""
                     
@@ -187,14 +193,14 @@ public actor ScannerEngine {
                         filesCount += 1
                         
                         var parentURL = url.deletingLastPathComponent()
-                        while parentURL.path != rootURL.path && parentURL.path != "/" {
+                        while parentURL.path != resolvedRootURL.path && parentURL.path != "/" {
                             if let parentNode = dirNodes[parentURL] {
                                 parentNode.physicalSize += physicalSize
                             }
                             parentURL = parentURL.deletingLastPathComponent()
                         }
                         
-                        if parentURL.path == rootURL.path {
+                        if parentURL.path == resolvedRootURL.path {
                             rootNode.physicalSize += physicalSize
                         }
                         
