@@ -27,7 +27,6 @@ public struct ScanProgress: Sendable {
 }
 
 public actor ScannerEngine {
-    private var seenInodes = Set<Data>()
     
     public init() {}
     
@@ -35,7 +34,13 @@ public actor ScannerEngine {
         at rootURL: URL,
         onProgress: @Sendable @escaping (ScanProgress) -> Void
     ) async throws -> FileItem {
-        seenInodes.removeAll()
+        
+        struct FileIdentity: Hashable, Sendable {
+            let volumeID: String
+            let inodeData: Data
+        }
+        
+        var seenInodes = Set<FileIdentity>()
         
         let activity = ProcessInfo.processInfo.beginActivity(
             options: [.userInitiated, .latencyCritical],
@@ -48,7 +53,7 @@ public actor ScannerEngine {
         
         var bytesScanned: Int64 = 0
         var filesCount = 0
-        var lastUpdate = Date()
+        var lastUpdate = CFAbsoluteTimeGetCurrent()
         
         let keys: [URLResourceKey] = [
             .totalFileAllocatedSizeKey,
@@ -56,13 +61,14 @@ public actor ScannerEngine {
             .isDirectoryKey,
             .nameKey,
             .isUbiquitousItemKey,
-            .ubiquitousItemDownloadingStatusKey
+            .ubiquitousItemDownloadingStatusKey,
+            .volumeUUIDStringKey
         ]
         
         guard let enumerator = FileManager.default.enumerator(
             at: rootURL,
             includingPropertiesForKeys: keys,
-            options: [.skipsPackageDescendants],
+            options: [], // Traverses inside packages to get accurate size metrics
             errorHandler: { (url, error) -> Bool in
                 // Gracefully continue scanning on permission/read errors
                 return true
@@ -71,15 +77,64 @@ public actor ScannerEngine {
             throw CocoaError(.fileReadUnknown)
         }
         
-        // Flat map to aggregate directory structures.
-        // We'll keep track of sizes to build the tree.
-        var sizeMap: [URL: Int64] = [:]
-        var directories: [URL] = []
-        var fileItems: [URL: FileItem] = [:]
+        // Tree building classes / helper structures
+        final class DirectoryNode {
+            let url: URL
+            let name: String
+            let isDirectory: Bool
+            var physicalSize: Int64
+            let isDatalessCloudItem: Bool
+            
+            var subdirectories: [URL: DirectoryNode] = [:]
+            var files: [FileItem] = []
+            var trimmedFilesSize: Int64 = 0
+            
+            init(url: URL, isDirectory: Bool = true, physicalSize: Int64 = 0, isDatalessCloudItem: Bool = false) {
+                self.url = url
+                self.name = url.lastPathComponent
+                self.isDirectory = isDirectory
+                self.physicalSize = physicalSize
+                self.isDatalessCloudItem = isDatalessCloudItem
+            }
+            
+            func addFile(_ file: FileItem) {
+                files.append(file)
+                if files.count > 300 {
+                    files.sort { $0.physicalSize > $1.physicalSize }
+                    let keep = Array(files.prefix(250))
+                    let discarded = files.suffix(from: 250)
+                    trimmedFilesSize += discarded.reduce(0) { $0 + $1.physicalSize }
+                    files = keep
+                }
+            }
+            
+            func toFileItem() -> FileItem {
+                let subDirItems = subdirectories.values.map { $0.toFileItem() }
+                var allChildren = files + subDirItems
+                allChildren.sort { $0.physicalSize > $1.physicalSize }
+                
+                var finalChildren = allChildren
+                if trimmedFilesSize > 0 || finalChildren.count > 250 {
+                    let top = Array(finalChildren.prefix(250))
+                    let remaining = finalChildren.suffix(from: 250)
+                    let remainingSize = remaining.reduce(0) { $0 + $1.physicalSize } + trimmedFilesSize
+                    let otherURL = url.appendingPathComponent("Other Smaller Files")
+                    let otherItem = FileItem(url: otherURL, isDirectory: false, physicalSize: remainingSize)
+                    finalChildren = top + [otherItem]
+                }
+                
+                return FileItem(
+                    url: url,
+                    isDirectory: isDirectory,
+                    physicalSize: physicalSize,
+                    isDatalessCloudItem: isDatalessCloudItem,
+                    children: finalChildren.isEmpty ? nil : finalChildren
+                )
+            }
+        }
         
-        // Add rootURL as first directory
-        sizeMap[rootURL] = 0
-        directories.append(rootURL)
+        let rootNode = DirectoryNode(url: rootURL)
+        var dirNodes: [URL: DirectoryNode] = [rootURL: rootNode]
         
         var counter = 0
         
@@ -102,8 +157,13 @@ public actor ScannerEngine {
                 let isDirectory = resourceValues.isDirectory ?? false
                 
                 if isDirectory {
-                    sizeMap[url] = 0
-                    directories.append(url)
+                    let node = DirectoryNode(url: url)
+                    dirNodes[url] = node
+                    
+                    let parentURL = url.deletingLastPathComponent()
+                    if let parentNode = dirNodes[parentURL] {
+                        parentNode.subdirectories[url] = node
+                    }
                 } else {
                     let isUbiquitous = resourceValues.isUbiquitousItem ?? false
                     let downloadStatus = resourceValues.ubiquitousItemDownloadingStatus
@@ -112,13 +172,15 @@ public actor ScannerEngine {
                     // Check physical size and inode for hard links
                     let physicalSize = isDataless ? 0 : Int64(resourceValues.totalFileAllocatedSize ?? 0)
                     let inode = resourceValues.fileResourceIdentifier
+                    let volumeID = resourceValues.volumeUUIDString ?? ""
                     
                     var shouldCount = true
                     if let inodeData = inode as? Data {
-                        if seenInodes.contains(inodeData) {
+                        let identity = FileIdentity(volumeID: volumeID, inodeData: inodeData)
+                        if seenInodes.contains(identity) {
                             shouldCount = false
                         } else {
-                            seenInodes.insert(inodeData)
+                            seenInodes.insert(identity)
                         }
                     }
                     
@@ -128,23 +190,28 @@ public actor ScannerEngine {
                         
                         // Bubble up sizes to all parent directories
                         var parentURL = url.deletingLastPathComponent()
-                        // Ensure we don't bubble past our scan root
-                        while parentURL.path.hasPrefix(rootURL.path) {
-                            sizeMap[parentURL, default: 0] += physicalSize
-                            if parentURL.path == rootURL.path { break }
+                        while parentURL.path != rootURL.path {
+                            if let parentNode = dirNodes[parentURL] {
+                                parentNode.physicalSize += physicalSize
+                            }
                             parentURL = parentURL.deletingLastPathComponent()
                         }
+                        rootNode.physicalSize += physicalSize
                         
-                        // Store file item (limit memory size by only storing large files or dataless cloud files)
+                        // Store file item (limit memory size by only storing files of size > 0 or cloud placeholders)
                         if physicalSize > 0 || isDataless {
-                            fileItems[url] = FileItem(url: url, isDirectory: false, physicalSize: physicalSize, isDatalessCloudItem: isDataless)
+                            let parentURL = url.deletingLastPathComponent()
+                            if let parentNode = dirNodes[parentURL] {
+                                let fileItem = FileItem(url: url, isDirectory: false, physicalSize: physicalSize, isDatalessCloudItem: isDataless)
+                                parentNode.addFile(fileItem)
+                            }
                         }
                     }
                 }
                 
-                // Throttle progress updates to UI
-                let now = Date()
-                if now.timeIntervalSince(lastUpdate) >= 0.25 {
+                // Throttle progress updates to UI using CFAbsoluteTimeGetCurrent
+                let now = CFAbsoluteTimeGetCurrent()
+                if now - lastUpdate >= 0.25 {
                     lastUpdate = now
                     let progress = ScanProgress(
                         bytesScanned: bytesScanned,
@@ -156,52 +223,6 @@ public actor ScannerEngine {
             }
         }
         
-        // Build the hierarchical tree.
-        // Sort directories by path depth (deepest first) to assemble child nodes into parents easily
-        let sortedDirectories = directories.sorted { $0.path.count > $1.path.count }
-        
-        var urlToChildren: [URL: [FileItem]] = [:]
-        
-        // Group files into their respective parent directories
-        for (fileURL, fileItem) in fileItems {
-            let parent = fileURL.deletingLastPathComponent()
-            urlToChildren[parent, default: []].append(fileItem)
-        }
-        
-        // Assemble folder items
-        for dirURL in sortedDirectories {
-            let directChildrenFiles = urlToChildren[dirURL, default: []]
-            
-            // Find direct subdirectory children
-            // A dir is a direct subdirectory if its parent is dirURL
-            let subDirs = directories.filter { $0.deletingLastPathComponent() == dirURL && $0 != dirURL }
-            
-            var subDirItems: [FileItem] = []
-            for subDirURL in subDirs {
-                let size = sizeMap[subDirURL] ?? 0
-                let children = urlToChildren[subDirURL]
-                let folderItem = FileItem(url: subDirURL, isDirectory: true, physicalSize: size, children: children)
-                subDirItems.append(folderItem)
-            }
-            
-            let allChildren = (directChildrenFiles + subDirItems).sorted { $0.physicalSize > $1.physicalSize }
-            
-            // Limit children count per node to keep UI fast and memory low (e.g. top 250)
-            let trimmedChildren: [FileItem]
-            if allChildren.count > 250 {
-                let top = Array(allChildren.prefix(250))
-                let remainingSize = allChildren.suffix(from: 250).reduce(0) { $0 + $1.physicalSize }
-                let otherURL = dirURL.appendingPathComponent("Other Smaller Files")
-                let otherItem = FileItem(url: otherURL, isDirectory: false, physicalSize: remainingSize)
-                trimmedChildren = top + [otherItem]
-            } else {
-                trimmedChildren = allChildren
-            }
-            
-            urlToChildren[dirURL] = trimmedChildren
-        }
-        
-        let rootChildren = urlToChildren[rootURL, default: []]
-        return FileItem(url: rootURL, isDirectory: true, physicalSize: sizeMap[rootURL] ?? 0, children: rootChildren)
+        return rootNode.toFileItem()
     }
 }

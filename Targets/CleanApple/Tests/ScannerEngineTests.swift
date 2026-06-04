@@ -106,6 +106,30 @@ struct ScannerEngineTests {
         #expect(result.physicalSize == scannedFile.physicalSize)
     }
     
+    @Test("Package Size Calculation")
+    func packageSizeCalculation() async throws {
+        let fileManager = FileManager.default
+        let tempDir = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let appDir = tempDir.appendingPathComponent("TestApp.app/Contents/MacOS")
+        try fileManager.createDirectory(at: appDir, withIntermediateDirectories: true)
+        
+        defer {
+            try? fileManager.removeItem(at: tempDir)
+        }
+        
+        let execFile = appDir.appendingPathComponent("exec")
+        let dummyData = Data(repeating: 0, count: 10 * 1024) // 10 KB
+        try dummyData.write(to: execFile)
+        
+        let engine = ScannerEngine()
+        let result = try await engine.scan(at: tempDir) { _ in }
+        
+        let children = try #require(result.children)
+        let appItem = try #require(children.first { $0.name == "TestApp.app" })
+        #expect(appItem.isDirectory)
+        #expect(appItem.physicalSize >= 10 * 1024)
+    }
+    
     @Test("Parameterization over File Types", arguments: [
         ("temp.csv", 50),
         ("temp.png", 500),
