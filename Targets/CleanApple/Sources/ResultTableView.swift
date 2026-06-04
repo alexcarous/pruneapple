@@ -28,8 +28,21 @@ class QuickLookController: NSObject, @preconcurrency QLPreviewPanelDataSource, @
 }
 
 struct ResultTableView: View {
+    @Environment(DiskAnalyzer.self) private var diskAnalyzer
+    @Environment(\.openSettings) private var openSettings
+    
     let rootItem: FileItem
-    @State private var selectedItem: FileItem? = nil
+    
+    @State private var displayItem: FileItem
+    @State private var sortOrder = [KeyPathComparator(\FileItem.physicalSize, order: .reverse)]
+    @State private var selectedItem: FileItem.ID? = nil
+    
+    @State private var displayMode: DisplayMode = .outline
+    
+    enum DisplayMode {
+        case outline
+        case sunburst
+    }
     
     private let byteFormatter: ByteCountFormatter = {
         let formatter = ByteCountFormatter()
@@ -37,11 +50,25 @@ struct ResultTableView: View {
         return formatter
     }()
     
+    init(rootItem: FileItem) {
+        self.rootItem = rootItem
+        self._displayItem = State(initialValue: rootItem)
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
+                Picker("Display", selection: $displayMode) {
+                    Image(systemName: "list.bullet.indent").tag(DisplayMode.outline)
+                    Image(systemName: "chart.pie").tag(DisplayMode.sunburst)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: 100)
+                
                 Text("Physical Space Used")
                     .font(.headline)
+                    .padding(.leading, 8)
                 
                 Button(action: {}) {
                     Image(systemName: "info.circle")
@@ -56,42 +83,97 @@ struct ResultTableView: View {
                 }
             }
             .padding(.horizontal)
+            .padding(.top, 10)
             
-            List(rootItem.children ?? [], children: \.children) { item in
-                HStack {
-                    Image(systemName: item.isDirectory ? "folder" : "doc")
-                        .foregroundColor(item.isDirectory ? .accentColor : .secondary)
-                    
-                    Text(item.name)
-                        .lineLimit(1)
+            if !diskAnalyzer.skippedURLs.isEmpty {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text("Some folders were skipped because CleanApple lacks permission to read them.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                     
                     Spacer()
                     
-                    Text(byteFormatter.string(fromByteCount: item.physicalSize))
-                        .foregroundColor(.secondary)
-                        .monospacedDigit()
+                    Button("Fix in Settings...") {
+                        if #available(macOS 14.0, *) {
+                            openSettings()
+                        } else {
+                            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                        }
+                    }
+                    .buttonStyle(.link)
                     
                     Button(action: {
-                        revealInFinder(item.url)
+                        diskAnalyzer.skippedURLs = []
                     }) {
-                        Image(systemName: "magnifyingglass")
-                            .help("Reveal in Finder")
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
                     }
-                    .buttonStyle(.borderless)
+                    .buttonStyle(.plain)
                 }
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(accessibilityString(for: item))
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    selectedItem = item
-                }
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(6)
+                .padding(.horizontal)
             }
-            .onKeyPress(.space) {
-                if let selected = selectedItem {
-                    QuickLookController.shared.showPreview(url: selected.url)
-                    return .handled
+            
+            if displayMode == .outline {
+                Table(displayItem.children ?? [], children: \.children, selection: $selectedItem, sortOrder: $sortOrder) {
+                    TableColumn("Name", value: \.name) { item in
+                        HStack(spacing: 6) {
+                            if item.isDatalessCloudItem {
+                                Image(systemName: "icloud.and.arrow.down")
+                                    .foregroundColor(.secondary)
+                            }
+                            Image(nsImage: NSWorkspace.shared.icon(forFile: item.url.path))
+                                .resizable()
+                                .frame(width: 16, height: 16)
+                            Text(item.name)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
+                    }
+                    TableColumn("Size", value: \.physicalSize) { item in
+                        Text(byteFormatter.string(fromByteCount: item.physicalSize))
+                            .foregroundColor(.secondary)
+                            .monospacedDigit()
+                    }
+                    .width(min: 80, ideal: 100, max: 150)
+                    
+                    TableColumn("") { item in
+                        Button(action: {
+                            revealInFinder(item.url)
+                        }) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Reveal in Finder")
+                    }
+                    .width(30)
                 }
-                return .ignored
+                .onChange(of: sortOrder) {
+                    displayItem.sort(using: sortOrder)
+                }
+                .contextMenu(forSelectionType: FileItem.ID.self) { items in
+                    if let first = items.first, let item = findItem(id: first, in: displayItem) {
+                        Button("Reveal in Finder") {
+                            revealInFinder(item.url)
+                        }
+                        Button("Quick Look") {
+                            QuickLookController.shared.showPreview(url: item.url)
+                        }
+                    }
+                } primaryAction: { items in
+                    if let first = items.first, let item = findItem(id: first, in: displayItem) {
+                        QuickLookController.shared.showPreview(url: item.url)
+                    }
+                }
+            } else {
+                DiskMapView(rootItem: rootItem)
+                    .padding()
             }
         }
     }
@@ -100,9 +182,15 @@ struct ResultTableView: View {
         NSWorkspace.shared.selectFile(url.path, inFileViewerRootedAtPath: "")
     }
     
-    private func accessibilityString(for item: FileItem) -> String {
-        let type = item.isDirectory ? "Folder" : "File"
-        let size = byteFormatter.string(fromByteCount: item.physicalSize)
-        return "\(type), \(item.name), \(size)"
+    private func findItem(id: FileItem.ID, in node: FileItem) -> FileItem? {
+        if node.id == id { return node }
+        if let children = node.children {
+            for child in children {
+                if let found = findItem(id: id, in: child) {
+                    return found
+                }
+            }
+        }
+        return nil
     }
 }

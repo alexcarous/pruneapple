@@ -20,9 +20,10 @@ struct ScannerEngineTests {
         try dummyData.write(to: testFile)
         
         let engine = ScannerEngine()
-        let result = try await engine.scan(at: tempDir) { progress in
+        let scanResult = try await engine.scan(at: tempDir) { progress in
             #expect(progress.filesCount >= 0)
         }
+        let result = scanResult.rootItem
         
         #expect(result.isDirectory)
         let children = try #require(result.children)
@@ -49,7 +50,8 @@ struct ScannerEngineTests {
         try dummyData.write(to: testFile)
         
         let engine = ScannerEngine()
-        let result = try await engine.scan(at: tempDir) { _ in }
+        let scanResult = try await engine.scan(at: tempDir) { _ in }
+        let result = scanResult.rootItem
         
         #expect(result.isDirectory)
         
@@ -96,7 +98,8 @@ struct ScannerEngineTests {
         try fileManager.linkItem(at: file1, to: file2)
         
         let engine = ScannerEngine()
-        let result = try await engine.scan(at: tempDir) { _ in }
+        let scanResult = try await engine.scan(at: tempDir) { _ in }
+        let result = scanResult.rootItem
         
         let children = try #require(result.children)
         #expect(children.count == 1)
@@ -122,7 +125,8 @@ struct ScannerEngineTests {
         try dummyData.write(to: execFile)
         
         let engine = ScannerEngine()
-        let result = try await engine.scan(at: tempDir) { _ in }
+        let scanResult = try await engine.scan(at: tempDir) { _ in }
+        let result = scanResult.rootItem
         
         let children = try #require(result.children)
         let appItem = try #require(children.first { $0.name == "TestApp.app" })
@@ -150,7 +154,8 @@ struct ScannerEngineTests {
         try dummyData.write(to: testFile)
         
         let engine = ScannerEngine()
-        let result = try await engine.scan(at: tempDir) { _ in }
+        let scanResult = try await engine.scan(at: tempDir) { _ in }
+        let result = scanResult.rootItem
         
         #expect(result.physicalSize >= 0)
         let children = try #require(result.children)

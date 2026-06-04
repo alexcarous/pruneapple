@@ -28,6 +28,11 @@ public struct ScanProgress: Sendable {
     public let currentScanningPath: String
 }
 
+public struct ScanResult: Sendable, Hashable {
+    public let rootItem: FileItem
+    public let skippedURLs: [URL]
+}
+
 public actor ScannerEngine {
     
     public init() {}
@@ -35,7 +40,7 @@ public actor ScannerEngine {
     public func scan(
         at rootURL: URL,
         onProgress: @Sendable @escaping (ScanProgress) -> Void
-    ) async throws -> FileItem {
+    ) async throws -> ScanResult {
         
         struct FileIdentity: Hashable, Sendable {
             let volumeID: String
@@ -72,11 +77,28 @@ public actor ScannerEngine {
         let canonicalPath = (try? rootURL.resourceValues(forKeys: [.canonicalPathKey]))?.canonicalPath ?? rootURL.path
         let resolvedRootURL = URL(fileURLWithPath: canonicalPath)
         
+        final class SkippedTracking: @unchecked Sendable {
+            var urls = [URL]()
+            private let lock = NSLock()
+            func add(_ url: URL) {
+                lock.lock()
+                urls.append(url)
+                lock.unlock()
+            }
+        }
+        let skippedTracking = SkippedTracking()
+        
         guard let enumerator = FileManager.default.enumerator(
             at: resolvedRootURL,
             includingPropertiesForKeys: keys,
             options: [],
             errorHandler: { (url, error) -> Bool in
+                let nsError = error as NSError
+                let isPerm = nsError.domain == NSCocoaErrorDomain && nsError.code == CocoaError.fileReadNoPermission.rawValue
+                    || nsError.domain == NSPOSIXErrorDomain && (nsError.code == EACCES || nsError.code == EPERM)
+                if isPerm {
+                    skippedTracking.add(url)
+                }
                 return true
             }
         ) else {
@@ -155,7 +177,18 @@ public actor ScannerEngine {
             try Task.checkCancellation()
             
             autoreleasepool {
-                guard let resourceValues = try? url.resourceValues(forKeys: Set(keys)) else { return }
+                let resourceValues: URLResourceValues
+                do {
+                    resourceValues = try url.resourceValues(forKeys: Set(keys))
+                } catch {
+                    let nsError = error as NSError
+                    let isPerm = nsError.domain == NSCocoaErrorDomain && nsError.code == CocoaError.fileReadNoPermission.rawValue
+                        || nsError.domain == NSPOSIXErrorDomain && (nsError.code == EACCES || nsError.code == EPERM)
+                    if isPerm {
+                        skippedTracking.add(url)
+                    }
+                    return
+                }
                 
                 let isDirectory = resourceValues.isDirectory ?? false
                 let isPackage = resourceValues.isPackage ?? false
@@ -222,6 +255,6 @@ public actor ScannerEngine {
             }
         }
         
-        return rootNode.toFileItem()
+        return ScanResult(rootItem: rootNode.toFileItem(), skippedURLs: skippedTracking.urls)
     }
 }

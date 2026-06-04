@@ -12,6 +12,7 @@ public final class DiskAnalyzer: Sendable {
     public var rootItem: FileItem? = nil
     public var selectedURL: URL? = nil
     public var errorMessage: String? = nil
+    public var skippedURLs: [URL] = []
     
     private let engine = ScannerEngine()
     
@@ -25,6 +26,7 @@ public final class DiskAnalyzer: Sendable {
         rootItem = nil
         selectedURL = url
         errorMessage = nil
+        skippedURLs = []
         
         do {
             let result = try await engine.scan(at: url) { [weak self] progress in
@@ -36,8 +38,9 @@ public final class DiskAnalyzer: Sendable {
                 }
             }
             
-            self.rootItem = result
-            self.progressBytes = result.physicalSize
+            self.rootItem = result.rootItem
+            self.skippedURLs = result.skippedURLs
+            self.progressBytes = result.rootItem.physicalSize
             
             // Trigger physical trackpad feedback on completion
             NSHapticFeedbackManager.defaultPerformer.perform(

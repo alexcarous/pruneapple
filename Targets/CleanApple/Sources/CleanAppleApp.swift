@@ -1,8 +1,16 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+}
+
 @main
 struct CleanAppleApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var diskAnalyzer = DiskAnalyzer()
     
     var body: some Scene {
@@ -12,6 +20,11 @@ struct CleanAppleApp: App {
                 .frame(minWidth: 600, minHeight: 400)
         }
         .windowStyle(.hiddenTitleBar)
+        
+        Settings {
+            SettingsView()
+                .environment(diskAnalyzer)
+        }
         
         MenuBarExtra {
             MenuBarView()
