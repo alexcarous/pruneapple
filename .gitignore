@@ -39,3 +39,10 @@ htmlcov/
 *.app
 *.dmg
 *.pkg
+
+# AI Artifacts
+/*.md
+!/README.md
+!/CONTRIBUTING.md
+!/CHANGELOG.md
+!/GEMINI.md

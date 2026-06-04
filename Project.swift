@@ -7,7 +7,7 @@ let project = Project(
             name: "CleanApple",
             destinations: .macOS,
             product: .app,
-            bundleId: "com.cleanapple.app",
+            bundleId: "us.caro.alex.CleanApple",
             deploymentTargets: .macOS("15.0"),
             infoPlist: .default,
             sources: ["Targets/CleanApple/Sources/**"],
