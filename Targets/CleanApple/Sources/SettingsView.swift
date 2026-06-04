@@ -25,25 +25,33 @@ struct SettingsView: View {
         TabView(selection: $activeTab) {
             PermissionsTab()
                 .tabItem {
-                    Label(Tab.permissions.rawValue, systemImage: Tab.permissions.icon)
+                    Label(activeTabTitle(for: .permissions), systemImage: Tab.permissions.icon)
                 }
                 .tag(Tab.permissions)
             
             AdvancedTab()
                 .tabItem {
-                    Label(Tab.advanced.rawValue, systemImage: Tab.advanced.icon)
+                    Label(activeTabTitle(for: .advanced), systemImage: Tab.advanced.icon)
                 }
                 .tag(Tab.advanced)
             
             AboutTab()
                 .tabItem {
-                    Label(Tab.about.rawValue, systemImage: Tab.about.icon)
+                    Label(activeTabTitle(for: .about), systemImage: Tab.about.icon)
                 }
                 .tag(Tab.about)
         }
         .environment(permissionManager)
-        .frame(width: 520, height: 440)
-        .padding()
+        .frame(width: Metrics.settingsWindowWidth, height: Metrics.settingsWindowHeight)
+        .padding(Metrics.paddingExtraLarge)
+    }
+    
+    private func activeTabTitle(for tab: Tab) -> String {
+        switch tab {
+        case .permissions: return String(localized: "Permissions")
+        case .advanced: return String(localized: "Advanced")
+        case .about: return String(localized: "About")
+        }
     }
 }
 
@@ -52,26 +60,26 @@ struct PermissionsTab: View {
     @Environment(PermissionManager.self) private var permissionManager
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Metrics.spacingLarge) {
             // Status Card
-            HStack(spacing: 16) {
+            HStack(spacing: Metrics.spacingLarge) {
                 ZStack {
                     Circle()
                         .fill(permissionManager.hasFullDiskAccess ? Color.green.opacity(0.15) : Color.orange.opacity(0.15))
-                        .frame(width: 48, height: 48)
+                        .frame(width: Metrics.iconStatus, height: Metrics.iconStatus)
                     
                     Image(systemName: permissionManager.hasFullDiskAccess ? "checkmark.shield.fill" : "exclamationmark.shield.fill")
                         .font(.title2)
                         .foregroundColor(permissionManager.hasFullDiskAccess ? .green : .orange)
                 }
                 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Full Disk Access")
+                VStack(alignment: .leading, spacing: Metrics.spacingVerySmall) {
+                    Text(String(localized: "Full Disk Access"))
                         .font(.headline)
                     
                     Text(permissionManager.hasFullDiskAccess 
-                         ? "CleanApple has full permission to analyze files and folders on your disk."
-                         : "CleanApple lacks Full Disk Access. Some system and user directories will be skipped during analysis.")
+                         ? String(localized: "CleanApple has full permission to analyze files and folders on your disk.")
+                         : String(localized: "CleanApple lacks Full Disk Access. Some system and user directories will be skipped during analysis."))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .lineLimit(2)
@@ -81,56 +89,56 @@ struct PermissionsTab: View {
             }
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(12)
+            .cornerRadius(Metrics.cornerRadiusLarge)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: Metrics.cornerRadiusLarge)
                     .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
             )
             
             // Instruction panel if FDA not granted
             if !permissionManager.hasFullDiskAccess {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("How to grant access:")
+                VStack(alignment: .leading, spacing: Metrics.spacingMedium) {
+                    Text(String(localized: "How to grant access:"))
                         .font(.headline)
                     
-                    VStack(alignment: .leading, spacing: 6) {
-                        InstructionRow(step: "1", text: "Click the \"Open System Settings\" button below.")
-                        InstructionRow(step: "2", text: "Locate or add \"CleanApple\" in the Full Disk Access list.")
-                        InstructionRow(step: "3", text: "Enable the switch next to CleanApple to grant access.")
-                        InstructionRow(step: "4", text: "Restart CleanApple if permissions do not apply immediately.")
+                    VStack(alignment: .leading, spacing: Metrics.spacingSmall) {
+                        InstructionRow(step: "1", text: String(localized: "Click the \"Open System Settings\" button below."))
+                        InstructionRow(step: "2", text: String(localized: "Locate or add \"CleanApple\" in the Full Disk Access list."))
+                        InstructionRow(step: "3", text: String(localized: "Enable the switch next to CleanApple to grant access."))
+                        InstructionRow(step: "4", text: String(localized: "Restart CleanApple if permissions do not apply immediately."))
                     }
                     
                     Button(action: {
                         permissionManager.openSystemSettings()
                     }) {
-                        Label("Open System Settings", systemImage: "arrow.up.forward.app")
+                        Label(String(localized: "Open System Settings"), systemImage: "arrow.up.forward.app")
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
-                    .padding(.top, 4)
+                    .padding(.top, Metrics.paddingSmall)
                 }
-                .padding(.horizontal, 4)
+                .padding(.horizontal, Metrics.paddingSmall)
             } else {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Permissions Active")
+                VStack(alignment: .leading, spacing: Metrics.spacingStandard) {
+                    Text(String(localized: "Permissions Active"))
                         .font(.headline)
-                    Text("All scanned folders will be parsed correctly. Note: If folders are still being skipped after granting access, you may need to restart CleanApple for the System FDA permissions to take full effect.")
+                    Text(String(localized: "All scanned folders will be parsed correctly. Note: If folders are still being skipped after granting access, you may need to restart CleanApple for the System FDA permissions to take full effect."))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
-                .padding(.horizontal, 4)
+                .padding(.horizontal, Metrics.paddingSmall)
             }
             
             Divider()
             
             // Skipped Paths list
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Metrics.spacingStandard) {
                 HStack {
-                    Text("Skipped Folders from Last Scan (\(diskAnalyzer.skippedURLs.count))")
+                    Text(String(localized: "Skipped Folders from Last Scan (\(diskAnalyzer.skippedURLs.count))"))
                         .font(.headline)
                     Spacer()
                     if !diskAnalyzer.skippedURLs.isEmpty {
-                        Button("Clear List") {
+                        Button(String(localized: "Clear List")) {
                             diskAnalyzer.skippedURLs = []
                         }
                         .buttonStyle(.plain)
@@ -139,20 +147,20 @@ struct PermissionsTab: View {
                 }
                 
                 if diskAnalyzer.skippedURLs.isEmpty {
-                    VStack(spacing: 8) {
+                    VStack(spacing: Metrics.spacingStandard) {
                         Image(systemName: "folder.badge.checkmark")
                             .font(.title)
                             .foregroundColor(.secondary)
-                        Text("No folders were skipped due to permission errors.")
+                        Text(String(localized: "No folders were skipped due to permission errors."))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-                    .cornerRadius(8)
+                    .cornerRadius(Metrics.cornerRadiusMedium)
                 } else {
                     ScrollView {
-                        VStack(spacing: 1) {
+                        VStack(spacing: Metrics.spacingTiny) {
                             ForEach(diskAnalyzer.skippedURLs, id: \.self) { url in
                                 HStack {
                                     Image(systemName: "folder.badge.minus")
@@ -168,21 +176,21 @@ struct PermissionsTab: View {
                                         Image(systemName: "magnifyingglass")
                                     }
                                     .buttonStyle(.plain)
-                                    .help("Reveal Parent in Finder")
+                                    .help(String(localized: "Reveal Parent in Finder"))
                                 }
-                                .padding(.vertical, 6)
-                                .padding(.horizontal, 8)
+                                .padding(.vertical, Metrics.paddingSmall + 2)
+                                .padding(.horizontal, Metrics.paddingMedium)
                                 .background(Color(NSColor.controlBackgroundColor))
                             }
                         }
                     }
                     .frame(maxHeight: .infinity)
                     .border(Color.secondary.opacity(0.2), width: 1)
-                    .cornerRadius(4)
+                    .cornerRadius(Metrics.cornerRadiusSmall)
                 }
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, Metrics.paddingMedium)
     }
     
     private func revealInFinder(_ url: URL) {
@@ -196,12 +204,12 @@ struct InstructionRow: View {
     let text: String
     
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: Metrics.spacingStandard) {
             Text(step)
                 .font(.caption)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
-                .frame(width: 18, height: 18)
+                .frame(width: Metrics.iconSmall, height: Metrics.iconSmall)
                 .background(Circle().fill(Color.accentColor))
             Text(text)
                 .font(.subheadline)
@@ -216,20 +224,20 @@ struct AdvancedTab: View {
     
     var body: some View {
         Form {
-            Section(header: Text("Scan Rules").font(.headline)) {
-                Toggle("Ignore hidden files and folders", isOn: $skipHiddenFiles)
-                    .help("When enabled, CleanApple will skip over system hidden items like .DS_Store, .git, etc.")
+            Section(header: Text(String(localized: "Scan Rules")).font(.headline)) {
+                Toggle(String(localized: "Ignore hidden files and folders"), isOn: $skipHiddenFiles)
+                    .help(String(localized: "When enabled, CleanApple will skip over system hidden items like .DS_Store, .git, etc."))
                 
-                Toggle("Ignore macOS package contents", isOn: $skipPackages)
-                    .help("When enabled, application bundles (.app) and frameworks (.framework) will be catalogued as simple files rather than directories.")
+                Toggle(String(localized: "Ignore macOS package contents"), isOn: $skipPackages)
+                    .help(String(localized: "When enabled, application bundles (.app) and frameworks (.framework) will be catalogued as simple files rather than directories."))
             }
-            .padding(.vertical, 8)
+            .padding(.vertical, Metrics.paddingMedium)
             
             Spacer()
             
             HStack {
                 Spacer()
-                Text("CleanApple v1.0.0")
+                Text(String(localized: "CleanApple v1.0.0"))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -240,31 +248,31 @@ struct AdvancedTab: View {
 
 struct AboutTab: View {
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Metrics.spacingLarge) {
             Image(systemName: "internaldrive.fill")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 64, height: 64)
+                .frame(width: Metrics.iconLarge, height: Metrics.iconLarge)
                 .foregroundColor(.accentColor)
             
-            VStack(spacing: 4) {
-                Text("CleanApple")
+            VStack(spacing: Metrics.spacingVerySmall) {
+                Text(String(localized: "CleanApple"))
                     .font(.title)
                     .fontWeight(.bold)
-                Text("Version 1.0.0 (Build 1)")
+                Text(String(localized: "Version 1.0.0 (Build 1)"))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 
                 Link("alex.caro.us", destination: URL(string: "https://alex.caro.us")!)
                     .font(.subheadline)
                     .foregroundColor(.accentColor)
-                    .padding(.top, 2)
+                    .padding(.top, Metrics.paddingVerySmall)
             }
             
             Divider()
             
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Legalese & Licensing")
+            VStack(alignment: .leading, spacing: Metrics.spacingStandard) {
+                Text(String(localized: "Legalese & Licensing"))
                     .font(.headline)
                 
                 ScrollView {
@@ -281,16 +289,16 @@ struct AboutTab: View {
                     """)
                     .font(.system(.caption, design: .monospaced))
                     .foregroundColor(.secondary)
-                    .padding(8)
+                    .padding(Metrics.paddingMedium)
                 }
-                .frame(height: 120)
+                .frame(height: Metrics.aboutLicensingHeight)
                 .background(Color(NSColor.controlBackgroundColor))
-                .cornerRadius(4)
+                .cornerRadius(Metrics.cornerRadiusSmall)
                 .border(Color.secondary.opacity(0.2), width: 0.5)
             }
             
             Spacer()
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, Metrics.paddingMedium)
     }
 }

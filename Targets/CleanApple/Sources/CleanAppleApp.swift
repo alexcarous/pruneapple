@@ -17,7 +17,7 @@ struct CleanAppleApp: App {
         WindowGroup {
             MainView()
                 .environment(diskAnalyzer)
-                .frame(minWidth: 600, minHeight: 400)
+                .frame(minWidth: Metrics.minWindowWidth, minHeight: Metrics.minWindowHeight)
         }
         .windowStyle(.hiddenTitleBar)
         
@@ -27,7 +27,7 @@ struct CleanAppleApp: App {
         }
         
         MenuBarExtra {
-            Button("Open CleanApple") {
+            Button(String(localized: "Open CleanApple")) {
                 NSApp.activate(ignoringOtherApps: true)
                 if let window = NSApp.windows.first {
                     window.makeKeyAndOrderFront(nil)
@@ -36,7 +36,7 @@ struct CleanAppleApp: App {
             
             Divider()
             
-            Button("Quit CleanApple") {
+            Button(String(localized: "Quit CleanApple")) {
                 NSApplication.shared.terminate(nil)
             }
         } label: {
@@ -51,7 +51,7 @@ struct MainView: View {
     @State private var dragOver = false
     
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: Metrics.spacingNone) {
             // Drag-and-Drop overlay if dragging
             if diskAnalyzer.isScanning {
                 ScanningProgressView()
@@ -69,7 +69,7 @@ struct MainView: View {
         } isTargeted: { targeted in
             dragOver = targeted
         }
-        .alert("Scan Failed", isPresented: Binding(
+        .alert(String(localized: "Scan Failed"), isPresented: Binding(
             get: { diskAnalyzer.errorMessage != nil },
             set: { show in
                 if !show {
@@ -77,7 +77,7 @@ struct MainView: View {
                 }
             }
         )) {
-            Button("OK", role: .cancel) {}
+            Button(String(localized: "OK"), role: .cancel) {}
         } message: {
             if let errorMessage = diskAnalyzer.errorMessage {
                 Text(errorMessage)
@@ -91,26 +91,26 @@ struct WelcomeView: View {
     @Binding var dragOver: Bool
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: Metrics.spacingExtraLarge) {
             Image(systemName: "internaldrive.fill")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 80, height: 80)
+                .frame(width: Metrics.iconHuge, height: Metrics.iconHuge)
                 .foregroundColor(dragOver ? .accentColor : .secondary)
                 .scaleEffect(dragOver ? 1.1 : 1.0)
                 .animation(.spring(), value: dragOver)
             
-            Text("CleanApple Disk Analyzer")
+            Text(String(localized: "CleanApple Disk Analyzer"))
                 .font(.title)
                 .fontWeight(.bold)
             
-            Text("Drag and drop a folder here, or select one below to scan physical disk usage.")
+            Text(String(localized: "Drag and drop a folder here, or select one below to scan physical disk usage."))
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
+                .padding(.horizontal, Metrics.paddingDoubleExtraLarge)
             
-            Button("Select Folder to Scan...") {
+            Button(String(localized: "Select Folder to Scan...")) {
                 selectFolderAndScan()
             }
             .buttonStyle(.borderedProminent)
@@ -125,7 +125,7 @@ struct WelcomeView: View {
         openPanel.canChooseFiles = false
         openPanel.canChooseDirectories = true
         openPanel.allowsMultipleSelection = false
-        openPanel.prompt = "Scan Folder"
+        openPanel.prompt = String(localized: "Scan Folder")
         
         openPanel.begin { response in
             if response == .OK, let url = openPanel.url {
@@ -145,16 +145,16 @@ struct ScanningProgressView: View {
     }()
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Metrics.spacingLarge) {
             ProgressView()
                 .progressViewStyle(.circular)
             
-            Text("Scanning Disk...")
+            Text(String(localized: "Scanning Disk..."))
                 .font(.headline)
             
-            VStack(spacing: 4) {
-                Text("Files Scanned: \(diskAnalyzer.progressFiles)")
-                Text("Space Tallied: \(byteFormatter.string(fromByteCount: diskAnalyzer.progressBytes))")
+            VStack(spacing: Metrics.spacingVerySmall) {
+                Text(String(localized: "Files Scanned: \(diskAnalyzer.progressFiles)"))
+                Text(String(localized: "Space Tallied: \(byteFormatter.string(fromByteCount: diskAnalyzer.progressBytes))"))
             }
             .font(.subheadline)
             .foregroundColor(.secondary)
@@ -166,14 +166,14 @@ struct ScanningProgressView: View {
                     .foregroundColor(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
-                    .padding(.horizontal, 40)
+                    .padding(.horizontal, Metrics.paddingDoubleExtraLarge)
             }
             
-            Button("Stop Scan", role: .destructive) {
+            Button(String(localized: "Stop Scan"), role: .destructive) {
                 diskAnalyzer.cancelScan()
             }
             .buttonStyle(.bordered)
-            .padding(.top, 8)
+            .padding(.top, Metrics.paddingMedium)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

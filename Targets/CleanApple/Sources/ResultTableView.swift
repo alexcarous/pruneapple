@@ -57,18 +57,18 @@ struct ResultTableView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Metrics.spacingMedium) {
             HStack(alignment: .center) {
-                Picker("Display", selection: $displayMode) {
+                Picker(String(localized: "Display"), selection: $displayMode) {
                     Image(systemName: "list.bullet").tag(DisplayMode.outline)
                     Image(systemName: "chart.pie").tag(DisplayMode.sunburst)
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
                 
-                Text("Physical Space Used")
+                Text(String(localized: "Physical Space Used"))
                     .font(.headline)
-                    .padding(.leading, 8)
+                    .padding(.leading, Metrics.paddingMedium)
                 
                 Button(action: {
                     showInfoPopover.toggle()
@@ -76,47 +76,47 @@ struct ResultTableView: View {
                     Image(systemName: "info.circle")
                 }
                 .buttonStyle(.plain)
-                .help("APFS physical allocated size. This may differ from Finder's logical size due to sparse files and clones.")
+                .help(String(localized: "APFS physical allocated size. This may differ from Finder's logical size due to sparse files and clones."))
                 .popover(isPresented: $showInfoPopover, arrowEdge: .bottom) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Physical Disk Space")
+                    VStack(alignment: .leading, spacing: Metrics.spacingStandard) {
+                        Text(String(localized: "Physical Disk Space"))
                             .font(.headline)
-                        Text("CleanApple measures the actual physical sectors allocated on disk by APFS. This accounts for:")
+                        Text(String(localized: "CleanApple measures the actual physical sectors allocated on disk by APFS. This accounts for:"))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         
-                        VStack(alignment: .leading, spacing: 6) {
-                            Label("Sparse Files: files that take less space than their logical size.", systemImage: "doc.text.fill")
-                            Label("APFS Clones: duplicated files that share blocks and use zero additional space.", systemImage: "doc.on.doc.fill")
-                            Label("Compression: system-compressed files.", systemImage: "arrow.down.forward.and.arrow.up.backward")
+                        VStack(alignment: .leading, spacing: Metrics.spacingSmall) {
+                            Label(String(localized: "Sparse Files: files that take less space than their logical size."), systemImage: "doc.text.fill")
+                            Label(String(localized: "APFS Clones: duplicated files that share blocks and use zero additional space."), systemImage: "doc.on.doc.fill")
+                            Label(String(localized: "Compression: system-compressed files."), systemImage: "arrow.down.forward.and.arrow.up.backward")
                         }
                         .font(.caption)
                         .foregroundColor(.secondary)
                     }
                     .padding()
-                    .frame(width: 320)
+                    .frame(width: Metrics.infoPopoverWidth)
                 }
                 
                 Spacer()
                 
-                Button("Export CSV") {
+                Button(String(localized: "Export CSV")) {
                     CSVExporter.export(rootItem)
                 }
             }
             .padding(.horizontal)
-            .padding(.top, 10)
+            .padding(.top, Metrics.paddingStandard)
             
             if !diskAnalyzer.skippedURLs.isEmpty {
-                HStack(spacing: 8) {
+                HStack(spacing: Metrics.spacingStandard) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(.orange)
-                    Text("Some folders were skipped due to permission errors. If you just granted access, please restart CleanApple.")
+                    Text(String(localized: "Some folders were skipped due to permission errors. If you just granted access, please restart CleanApple."))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
                     Spacer()
                     
-                    Button("Fix in Settings...") {
+                    Button(String(localized: "Fix in Settings...")) {
                         if #available(macOS 14.0, *) {
                             openSettings()
                         } else {
@@ -133,35 +133,35 @@ struct ResultTableView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                .padding(.vertical, 8)
-                .padding(.horizontal, 12)
+                .padding(.vertical, Metrics.paddingMedium)
+                .padding(.horizontal, Metrics.paddingLarge)
                 .background(Color.orange.opacity(0.1))
-                .cornerRadius(6)
+                .cornerRadius(Metrics.cornerRadiusStandard)
                 .padding(.horizontal)
             }
             
             if displayMode == .outline {
                 Table(displayItem.children ?? [], children: \.children, selection: $selectedItem, sortOrder: $sortOrder) {
-                    TableColumn("Name", value: \.name) { item in
-                        HStack(spacing: 6) {
+                    TableColumn(String(localized: "Name"), value: \.name) { item in
+                        HStack(spacing: Metrics.spacingSmall) {
                             if item.isDatalessCloudItem {
                                 Image(systemName: "icloud.and.arrow.down")
                                     .foregroundColor(.secondary)
                             }
                             Image(nsImage: NSWorkspace.shared.icon(forFile: item.url.path))
                                 .resizable()
-                                .frame(width: 16, height: 16)
-                            Text(item.name)
+                                .frame(width: Metrics.iconMini, height: Metrics.iconMini)
+                            Text(item.name == "Other Smaller Files" ? String(localized: "Other Smaller Files") : item.name)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                         }
                     }
-                    TableColumn("Size", value: \.physicalSize) { item in
+                    TableColumn(String(localized: "Size"), value: \.physicalSize) { item in
                         Text(byteFormatter.string(fromByteCount: item.physicalSize))
                             .foregroundColor(.secondary)
                             .monospacedDigit()
                     }
-                    .width(min: 80, ideal: 100, max: 150)
+                    .width(min: Metrics.tableSizeColumnMin, ideal: Metrics.tableSizeColumnIdeal, max: Metrics.tableSizeColumnMax)
                     
                     TableColumn("") { item in
                         if item.name != "Other Smaller Files" {
@@ -172,20 +172,20 @@ struct ResultTableView: View {
                                     .foregroundColor(.secondary)
                             }
                             .buttonStyle(.plain)
-                            .help("Reveal in Finder")
+                            .help(String(localized: "Reveal in Finder"))
                         }
                     }
-                    .width(30)
+                    .width(Metrics.tableActionColumnWidth)
                 }
                 .onChange(of: sortOrder) {
                     displayItem.sort(using: sortOrder)
                 }
                 .contextMenu(forSelectionType: FileItem.ID.self) { items in
                     if let first = items.first, let item = findItem(id: first, in: displayItem), item.name != "Other Smaller Files" {
-                        Button("Reveal in Finder") {
+                        Button(String(localized: "Reveal in Finder")) {
                             revealInFinder(item.url)
                         }
-                        Button("Quick Look") {
+                        Button(String(localized: "Quick Look")) {
                             QuickLookController.shared.showPreview(url: item.url)
                         }
                     }
@@ -196,7 +196,7 @@ struct ResultTableView: View {
                 }
             } else {
                 DiskMapView(rootItem: rootItem)
-                    .padding()
+                    .padding(Metrics.paddingExtraLarge)
             }
         }
     }
