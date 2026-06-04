@@ -5,15 +5,17 @@ public struct FileItem: Identifiable, Sendable, Hashable {
     public let url: URL
     public let name: String
     public let isDirectory: Bool
+    public let isPackage: Bool
     public let physicalSize: Int64
     public let isDatalessCloudItem: Bool
     public var children: [FileItem]?
     
-    public init(url: URL, isDirectory: Bool, physicalSize: Int64, isDatalessCloudItem: Bool = false, children: [FileItem]? = nil) {
+    public init(url: URL, isDirectory: Bool, isPackage: Bool = false, physicalSize: Int64, isDatalessCloudItem: Bool = false, children: [FileItem]? = nil) {
         self.id = url.standardizedFileURL.hashValue
         self.url = url
         self.name = url.lastPathComponent
         self.isDirectory = isDirectory
+        self.isPackage = isPackage
         self.physicalSize = physicalSize
         self.isDatalessCloudItem = isDatalessCloudItem
         self.children = children
@@ -59,6 +61,7 @@ public actor ScannerEngine {
             .totalFileAllocatedSizeKey,
             .fileResourceIdentifierKey,
             .isDirectoryKey,
+            .isPackageKey,
             .nameKey,
             .isUbiquitousItemKey,
             .ubiquitousItemDownloadingStatusKey,
@@ -68,20 +71,19 @@ public actor ScannerEngine {
         guard let enumerator = FileManager.default.enumerator(
             at: rootURL,
             includingPropertiesForKeys: keys,
-            options: [], // Traverses inside packages to get accurate size metrics
+            options: [],
             errorHandler: { (url, error) -> Bool in
-                // Gracefully continue scanning on permission/read errors
                 return true
             }
         ) else {
             throw CocoaError(.fileReadUnknown)
         }
         
-        // Tree building classes / helper structures
         final class DirectoryNode {
             let url: URL
             let name: String
             let isDirectory: Bool
+            let isPackage: Bool
             var physicalSize: Int64
             let isDatalessCloudItem: Bool
             
@@ -89,10 +91,11 @@ public actor ScannerEngine {
             var files: [FileItem] = []
             var trimmedFilesSize: Int64 = 0
             
-            init(url: URL, isDirectory: Bool = true, physicalSize: Int64 = 0, isDatalessCloudItem: Bool = false) {
+            init(url: URL, isDirectory: Bool = true, isPackage: Bool = false, physicalSize: Int64 = 0, isDatalessCloudItem: Bool = false) {
                 self.url = url
                 self.name = url.lastPathComponent
                 self.isDirectory = isDirectory
+                self.isPackage = isPackage
                 self.physicalSize = physicalSize
                 self.isDatalessCloudItem = isDatalessCloudItem
             }
@@ -110,25 +113,29 @@ public actor ScannerEngine {
             
             func toFileItem() -> FileItem {
                 let subDirItems = subdirectories.values.map { $0.toFileItem() }
-                var allChildren = files + subDirItems
-                allChildren.sort { $0.physicalSize > $1.physicalSize }
                 
-                var finalChildren = allChildren
-                if trimmedFilesSize > 0 || finalChildren.count > 250 {
-                    let top = Array(finalChildren.prefix(250))
-                    let remaining = finalChildren.suffix(from: 250)
+                // Trim only files, NEVER directories
+                var finalFiles = files
+                if trimmedFilesSize > 0 || finalFiles.count > 250 {
+                    finalFiles.sort { $0.physicalSize > $1.physicalSize }
+                    let top = Array(finalFiles.prefix(250))
+                    let remaining = finalFiles.suffix(from: 250)
                     let remainingSize = remaining.reduce(0) { $0 + $1.physicalSize } + trimmedFilesSize
                     let otherURL = url.appendingPathComponent("Other Smaller Files")
-                    let otherItem = FileItem(url: otherURL, isDirectory: false, physicalSize: remainingSize)
-                    finalChildren = top + [otherItem]
+                    let otherItem = FileItem(url: otherURL, isDirectory: false, isPackage: false, physicalSize: remainingSize)
+                    finalFiles = top + [otherItem]
                 }
+                
+                var allChildren = finalFiles + subDirItems
+                allChildren.sort { $0.physicalSize > $1.physicalSize }
                 
                 return FileItem(
                     url: url,
                     isDirectory: isDirectory,
+                    isPackage: isPackage,
                     physicalSize: physicalSize,
                     isDatalessCloudItem: isDatalessCloudItem,
-                    children: finalChildren.isEmpty ? nil : finalChildren
+                    children: allChildren.isEmpty ? nil : allChildren
                 )
             }
         }
@@ -140,24 +147,20 @@ public actor ScannerEngine {
         
         while let url = enumerator.nextObject() as? URL {
             counter += 1
-            
-            // Yield cooperative execution block every 1000 files
-            if counter % 1000 == 0 {
-                await Task.yield()
-            }
-            
+            if counter % 1000 == 0 { await Task.yield() }
             try Task.checkCancellation()
             
-            // ARC memory protection per-file
             autoreleasepool {
-                guard let resourceValues = try? url.resourceValues(forKeys: Set(keys)) else {
-                    return
-                }
+                guard let resourceValues = try? url.resourceValues(forKeys: Set(keys)) else { return }
                 
                 let isDirectory = resourceValues.isDirectory ?? false
+                let isPackage = resourceValues.isPackage ?? false
+                let isUbiquitous = resourceValues.isUbiquitousItem ?? false
+                let downloadStatus = resourceValues.ubiquitousItemDownloadingStatus
+                let isDataless = isUbiquitous && downloadStatus == .notDownloaded
                 
                 if isDirectory {
-                    let node = DirectoryNode(url: url)
+                    let node = DirectoryNode(url: url, isDirectory: true, isPackage: isPackage, isDatalessCloudItem: isDataless)
                     dirNodes[url] = node
                     
                     let parentURL = url.deletingLastPathComponent()
@@ -165,11 +168,6 @@ public actor ScannerEngine {
                         parentNode.subdirectories[url] = node
                     }
                 } else {
-                    let isUbiquitous = resourceValues.isUbiquitousItem ?? false
-                    let downloadStatus = resourceValues.ubiquitousItemDownloadingStatus
-                    let isDataless = isUbiquitous && downloadStatus == .notDownloaded
-                    
-                    // Check physical size and inode for hard links
                     let physicalSize = isDataless ? 0 : Int64(resourceValues.totalFileAllocatedSize ?? 0)
                     let inode = resourceValues.fileResourceIdentifier
                     let volumeID = resourceValues.volumeUUIDString ?? ""
@@ -188,37 +186,32 @@ public actor ScannerEngine {
                         bytesScanned += physicalSize
                         filesCount += 1
                         
-                        // Bubble up sizes to all parent directories
                         var parentURL = url.deletingLastPathComponent()
-                        while parentURL.path != rootURL.path {
+                        while parentURL.path != rootURL.path && parentURL.path != "/" {
                             if let parentNode = dirNodes[parentURL] {
                                 parentNode.physicalSize += physicalSize
                             }
                             parentURL = parentURL.deletingLastPathComponent()
                         }
-                        rootNode.physicalSize += physicalSize
                         
-                        // Store file item (limit memory size by only storing files of size > 0 or cloud placeholders)
+                        if parentURL.path == rootURL.path {
+                            rootNode.physicalSize += physicalSize
+                        }
+                        
                         if physicalSize > 0 || isDataless {
-                            let parentURL = url.deletingLastPathComponent()
-                            if let parentNode = dirNodes[parentURL] {
-                                let fileItem = FileItem(url: url, isDirectory: false, physicalSize: physicalSize, isDatalessCloudItem: isDataless)
+                            let immediateParent = url.deletingLastPathComponent()
+                            if let parentNode = dirNodes[immediateParent] {
+                                let fileItem = FileItem(url: url, isDirectory: false, isPackage: isPackage, physicalSize: physicalSize, isDatalessCloudItem: isDataless)
                                 parentNode.addFile(fileItem)
                             }
                         }
                     }
                 }
                 
-                // Throttle progress updates to UI using CFAbsoluteTimeGetCurrent
                 let now = CFAbsoluteTimeGetCurrent()
                 if now - lastUpdate >= 0.25 {
                     lastUpdate = now
-                    let progress = ScanProgress(
-                        bytesScanned: bytesScanned,
-                        filesCount: filesCount,
-                        currentScanningPath: url.lastPathComponent
-                    )
-                    onProgress(progress)
+                    onProgress(ScanProgress(bytesScanned: bytesScanned, filesCount: filesCount, currentScanningPath: url.lastPathComponent))
                 }
             }
         }

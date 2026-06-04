@@ -127,6 +127,7 @@ struct ScannerEngineTests {
         let children = try #require(result.children)
         let appItem = try #require(children.first { $0.name == "TestApp.app" })
         #expect(appItem.isDirectory)
+        #expect(appItem.isPackage)
         #expect(appItem.physicalSize >= 10 * 1024)
     }
     
