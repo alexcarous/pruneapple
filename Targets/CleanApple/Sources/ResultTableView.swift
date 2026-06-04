@@ -36,6 +36,7 @@ struct ResultTableView: View {
     @State private var displayItem: FileItem
     @State private var sortOrder = [KeyPathComparator(\FileItem.physicalSize, order: .reverse)]
     @State private var selectedItem: FileItem.ID? = nil
+    @State private var showInfoPopover = false
     
     @State private var displayMode: DisplayMode = .outline
     
@@ -70,11 +71,32 @@ struct ResultTableView: View {
                     .font(.headline)
                     .padding(.leading, 8)
                 
-                Button(action: {}) {
+                Button(action: {
+                    showInfoPopover.toggle()
+                }) {
                     Image(systemName: "info.circle")
                 }
                 .buttonStyle(.plain)
                 .help("APFS physical allocated size. This may differ from Finder's logical size due to sparse files and clones.")
+                .popover(isPresented: $showInfoPopover, arrowEdge: .bottom) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Physical Disk Space")
+                            .font(.headline)
+                        Text("CleanApple measures the actual physical sectors allocated on disk by APFS. This accounts for:")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        VStack(alignment: .leading, spacing: 6) {
+                            Label("Sparse Files: files that take less space than their logical size.", systemImage: "doc.text.fill")
+                            Label("APFS Clones: duplicated files that share blocks and use zero additional space.", systemImage: "doc.on.doc.fill")
+                            Label("Compression: system-compressed files.", systemImage: "arrow.down.forward.and.arrow.up.backward")
+                        }
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    }
+                    .padding()
+                    .frame(width: 320)
+                }
                 
                 Spacer()
                 
