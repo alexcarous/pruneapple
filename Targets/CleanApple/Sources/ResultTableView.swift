@@ -164,14 +164,16 @@ struct ResultTableView: View {
                     .width(min: 80, ideal: 100, max: 150)
                     
                     TableColumn("") { item in
-                        Button(action: {
-                            revealInFinder(item.url)
-                        }) {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundColor(.secondary)
+                        if item.name != "Other Smaller Files" {
+                            Button(action: {
+                                revealInFinder(item.url)
+                            }) {
+                                Image(systemName: "magnifyingglass")
+                                    .foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Reveal in Finder")
                         }
-                        .buttonStyle(.plain)
-                        .help("Reveal in Finder")
                     }
                     .width(30)
                 }
@@ -179,7 +181,7 @@ struct ResultTableView: View {
                     displayItem.sort(using: sortOrder)
                 }
                 .contextMenu(forSelectionType: FileItem.ID.self) { items in
-                    if let first = items.first, let item = findItem(id: first, in: displayItem) {
+                    if let first = items.first, let item = findItem(id: first, in: displayItem), item.name != "Other Smaller Files" {
                         Button("Reveal in Finder") {
                             revealInFinder(item.url)
                         }
@@ -188,7 +190,7 @@ struct ResultTableView: View {
                         }
                     }
                 } primaryAction: { items in
-                    if let first = items.first, let item = findItem(id: first, in: displayItem) {
+                    if let first = items.first, let item = findItem(id: first, in: displayItem), item.name != "Other Smaller Files" {
                         QuickLookController.shared.showPreview(url: item.url)
                     }
                 }
