@@ -1,1 +1,41 @@
-node_modules/\n.DS_Store\nbuild/\ndist/
+# General
+.DS_Store
+.env
+.env.local
+.env.*.local
+
+# Build folders
+build/
+dist/
+DerivedData/
+.build/
+
+# Swift / Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+/*.xcworkspace/*
+!/*.xcworkspace/contents.xcworkspacedata
+xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+*.xcuserstate
+.swiftpm/
+
+# Python (cleaning up the scaffold)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Project Specific
+*.app
+*.dmg
+*.pkg
