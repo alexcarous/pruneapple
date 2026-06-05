@@ -26,10 +26,8 @@ final class CleanAppleUITests: XCTestCase {
         
         app.launch()
 
-        // Tap the app to trigger the interruption monitor if a dialog is already present
-        app.click()
-
-        // Basic verification that the app launched and has elements on screen
-        XCTAssertTrue(app.state == .runningForeground || app.state == .runningBackground)
+        // Wait up to 5 seconds for the app to reach the foreground state
+        let isForeground = app.wait(for: .runningForeground, timeout: 5.0)
+        XCTAssertTrue(isForeground, "The application failed to launch into the foreground.")
     }
 }
