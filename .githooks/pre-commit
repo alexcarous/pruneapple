@@ -1,9 +1,19 @@
 #!/bin/sh
 # pre-commit hook
 
+export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$PATH"
+
 echo "========================================="
 echo "Running Local Linter before commit..."
 echo "========================================="
+
+# Stash unstaged changes to ensure we only lint what is actually being committed
+if git diff --quiet; then
+    HAS_UNSTAGED=false
+else
+    HAS_UNSTAGED=true
+    git stash push --keep-index -q -m "pre-commit unstaged stash"
+fi
 
 # Run the linter
 echo "Running make lint..."
@@ -12,7 +22,17 @@ if ! make lint; then
     echo "❌ Local Linter Failed: Lint checks did not pass."
     echo "Please fix the style violations before committing."
     echo "========================================="
+    
+    # Restore unstaged changes if we stashed them
+    if [ "$HAS_UNSTAGED" = true ]; then
+        git stash pop -q
+    fi
     exit 1
+fi
+
+# Restore unstaged changes if we stashed them
+if [ "$HAS_UNSTAGED" = true ]; then
+    git stash pop -q
 fi
 
 echo "========================================="

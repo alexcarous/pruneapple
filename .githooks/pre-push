@@ -1,13 +1,24 @@
 #!/bin/sh
 # pre-push hook
 
+export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$PATH"
+
 echo "========================================="
 echo "Running Local CI before push..."
 echo "========================================="
 
-# Run the test suite without caching to avoid stale passes
-echo "Running tuist test --no-cache..."
-if ! mise exec -- tuist test --no-cache; then
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+TEST_COMMAND="mise exec -- tuist test"
+
+# Force a clean test run without cache only when pushing to main
+# to save developer time on feature branches.
+if [ "$CURRENT_BRANCH" = "main" ]; then
+    echo "Pushing to main branch. Disabling Tuist cache..."
+    TEST_COMMAND="mise exec -- tuist test --no-cache"
+fi
+
+echo "Running $TEST_COMMAND..."
+if ! $TEST_COMMAND; then
     echo "========================================="
     echo "❌ Local CI Failed: Tests did not pass."
     echo "Please fix the failing tests before pushing."
