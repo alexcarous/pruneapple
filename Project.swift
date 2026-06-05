@@ -17,7 +17,7 @@ let project = Project(
                 "NSNetworkVolumesUsageDescription": "CleanApple requires access to network drives to scan their contents."
             ]),
             sources: ["Targets/CleanApple/Sources/**"],
-            resources: ["Targets/CleanApple/Resources/**"],
+            resources: [.glob(pattern: "Targets/CleanApple/Resources/**", excluding: ["Targets/CleanApple/Resources/CleanApple.entitlements"])],
             entitlements: "Targets/CleanApple/Resources/CleanApple.entitlements"
         ),
         .target(
