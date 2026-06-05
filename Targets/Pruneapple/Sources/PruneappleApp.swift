@@ -20,6 +20,14 @@ struct PruneappleApp: App {
                 .frame(minWidth: Metrics.minWindowWidth, minHeight: Metrics.minWindowHeight)
         }
         .windowStyle(.hiddenTitleBar)
+        .commands {
+            CommandGroup(replacing: .newItem) {
+                Button(String(localized: "New Scan")) {
+                    diskAnalyzer.reset()
+                }
+                .keyboardShortcut("n", modifiers: .command)
+            }
+        }
         
         Settings {
             SettingsView()

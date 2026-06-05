@@ -74,4 +74,14 @@ public final class DiskAnalyzer: Sendable {
         isScanning = false
         rootItem = nil
     }
+    
+    public func reset() {
+        scanTask?.cancel()
+        scanTask = nil
+        isScanning = false
+        rootItem = nil
+        selectedURL = nil
+        errorMessage = nil
+        skippedURLs = []
+    }
 }
