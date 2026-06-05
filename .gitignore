@@ -13,6 +13,7 @@ DerivedData/
 # Tuist / Xcode Generated
 *.xcodeproj
 *.xcworkspace
+Derived/
 xcuserdata/
 *.xccheckout
 *.xcscmblueprint

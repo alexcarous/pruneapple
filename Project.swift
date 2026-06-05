@@ -1,47 +1,47 @@
 import ProjectDescription
 
 let project = Project(
-    name: "CleanApple",
+    name: "Pruneapple",
     targets: [
         .target(
-            name: "CleanApple",
+            name: "Pruneapple",
             destinations: .macOS,
             product: .app,
-            bundleId: "us.caro.alex.CleanApple",
+            bundleId: "us.caro.alex.Pruneapple",
             deploymentTargets: .macOS("15.0"),
             infoPlist: .extendingDefault(with: [
-                "NSDesktopFolderUsageDescription": "CleanApple requires access to your Desktop to calculate folder sizes.",
-                "NSDocumentsFolderUsageDescription": "CleanApple requires access to your Documents to calculate folder sizes.",
-                "NSDownloadsFolderUsageDescription": "CleanApple requires access to your Downloads to calculate folder sizes.",
-                "NSRemovableVolumesUsageDescription": "CleanApple requires access to external drives to scan their contents.",
-                "NSNetworkVolumesUsageDescription": "CleanApple requires access to network drives to scan their contents."
+                "NSDesktopFolderUsageDescription": "Pruneapple requires access to your Desktop to calculate folder sizes.",
+                "NSDocumentsFolderUsageDescription": "Pruneapple requires access to your Documents to calculate folder sizes.",
+                "NSDownloadsFolderUsageDescription": "Pruneapple requires access to your Downloads to calculate folder sizes.",
+                "NSRemovableVolumesUsageDescription": "Pruneapple requires access to external drives to scan their contents.",
+                "NSNetworkVolumesUsageDescription": "Pruneapple requires access to network drives to scan their contents."
             ]),
-            sources: ["Targets/CleanApple/Sources/**"],
-            resources: [.glob(pattern: "Targets/CleanApple/Resources/**", excluding: ["Targets/CleanApple/Resources/CleanApple.entitlements"])],
-            entitlements: "Targets/CleanApple/Resources/CleanApple.entitlements"
+            sources: ["Targets/Pruneapple/Sources/**"],
+            resources: [.glob(pattern: "Targets/Pruneapple/Resources/**", excluding: ["Targets/Pruneapple/Resources/Pruneapple.entitlements"])],
+            entitlements: "Targets/Pruneapple/Resources/Pruneapple.entitlements"
         ),
         .target(
-            name: "CleanAppleTests",
+            name: "PruneappleTests",
             destinations: .macOS,
             product: .unitTests,
-            bundleId: "us.caro.alex.CleanAppleTests",
+            bundleId: "us.caro.alex.PruneappleTests",
             deploymentTargets: .macOS("15.0"),
             infoPlist: .default,
-            sources: ["Targets/CleanApple/Tests/**"],
+            sources: ["Targets/Pruneapple/Tests/**"],
             dependencies: [
-                .target(name: "CleanApple")
+                .target(name: "Pruneapple")
             ]
         ),
         .target(
-            name: "CleanAppleUITests",
+            name: "PruneappleUITests",
             destinations: .macOS,
             product: .uiTests,
-            bundleId: "us.caro.alex.CleanAppleUITests",
+            bundleId: "us.caro.alex.PruneappleUITests",
             deploymentTargets: .macOS("15.0"),
             infoPlist: .default,
-            sources: ["Targets/CleanApple/UITests/**"],
+            sources: ["Targets/Pruneapple/UITests/**"],
             dependencies: [
-                .target(name: "CleanApple")
+                .target(name: "Pruneapple")
             ]
         )
     ]

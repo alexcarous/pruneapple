@@ -16,7 +16,7 @@ public final class DiskAnalyzer: Sendable {
     public var skippedURLs: [URL] = []
     
     private let engine = ScannerEngine()
-    private let logger = Logger(subsystem: "us.caro.alex.CleanApple", category: "Scanner")
+    private let logger = Logger(subsystem: "us.caro.alex.Pruneapple", category: "Scanner")
     
     public init() {}
     

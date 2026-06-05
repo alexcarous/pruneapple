@@ -8,9 +8,9 @@ opt_in_rules:
   - force_unwrapping
 
 included:
-  - Targets/CleanApple/Sources
+  - Targets/Pruneapple/Sources
 
 excluded:
   - .build
   - DerivedData
-  - Targets/CleanApple/Tests
+  - Targets/Pruneapple/Tests
