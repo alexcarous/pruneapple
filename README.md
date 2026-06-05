@@ -1,4 +1,4 @@
-# Pruneapple 🍍
+# Pruneapple ✂🍍
 
 Pruneapple is a native macOS app that scans your disk to find those massive, forgotten files and folders. The best part? It's completely read-only, which means it will never accidentally delete anything important. It's just a tool to help you see what's going on, and then you can decide what to do with that information by revealing it in Finder.
 
