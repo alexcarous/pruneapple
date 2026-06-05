@@ -31,6 +31,18 @@ let project = Project(
             dependencies: [
                 .target(name: "CleanApple")
             ]
+        ),
+        .target(
+            name: "CleanAppleUITests",
+            destinations: .macOS,
+            product: .uiTests,
+            bundleId: "us.caro.alex.CleanAppleUITests",
+            deploymentTargets: .macOS("15.0"),
+            infoPlist: .default,
+            sources: ["Targets/CleanApple/UITests/**"],
+            dependencies: [
+                .target(name: "CleanApple")
+            ]
         )
     ]
 )
