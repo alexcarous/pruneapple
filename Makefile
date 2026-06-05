@@ -1,6 +1,7 @@
 .PHONY: setup test lint format clean
 
 setup:
+	git config core.hooksPath .githooks
 	mise exec -- tuist generate
 
 test:

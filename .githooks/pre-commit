@@ -1,0 +1,21 @@
+#!/bin/sh
+# pre-commit hook
+
+echo "========================================="
+echo "Running Local Linter before commit..."
+echo "========================================="
+
+# Run the linter
+echo "Running make lint..."
+if ! make lint; then
+    echo "========================================="
+    echo "❌ Local Linter Failed: Lint checks did not pass."
+    echo "Please fix the style violations before committing."
+    echo "========================================="
+    exit 1
+fi
+
+echo "========================================="
+echo "✅ Local Linter Passed. Proceeding with commit."
+echo "========================================="
+exit 0
