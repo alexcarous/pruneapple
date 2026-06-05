@@ -31,6 +31,13 @@ struct PruneappleApp: App {
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(updater: updateManager.updaterController.updater)
             }
+            CommandGroup(replacing: .help) {
+                Button(String(localized: "Pruneapple Help")) {
+                    if let url = URL(string: "https://alex.caro.us") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+            }
         }
         
         Settings {
