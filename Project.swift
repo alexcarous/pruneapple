@@ -20,13 +20,18 @@ let project = Project(
                 "NSDocumentsFolderUsageDescription": "Pruneapple requires access to your Documents to calculate folder sizes.",
                 "NSDownloadsFolderUsageDescription": "Pruneapple requires access to your Downloads to calculate folder sizes.",
                 "NSRemovableVolumesUsageDescription": "Pruneapple requires access to external drives to scan their contents.",
-                "NSNetworkVolumesUsageDescription": "Pruneapple requires access to network drives to scan their contents."
+                "NSNetworkVolumesUsageDescription": "Pruneapple requires access to network drives to scan their contents.",
+                "SUFeedURL": "https://alex.caro.us/pruneapple/appcast.xml",
+                "SUPublicEDKey": "O6PUodfxeFe6K3xz1CBrg7yoYGtoC8AzeoNwSFl9BPE="
             ]),
             sources: ["Targets/Pruneapple/Sources/**"],
             resources: [
                 "Targets/Pruneapple/Resources/Assets.xcassets"
             ],
-            entitlements: "Targets/Pruneapple/Resources/Pruneapple.entitlements"
+            entitlements: "Targets/Pruneapple/Resources/Pruneapple.entitlements",
+            dependencies: [
+                .external(name: "Sparkle")
+            ]
         ),
         .target(
             name: "PruneappleTests",
