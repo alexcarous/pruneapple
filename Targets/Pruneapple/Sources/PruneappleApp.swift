@@ -92,7 +92,7 @@ struct WelcomeView: View {
     
     var body: some View {
         VStack(spacing: Metrics.spacingExtraLarge) {
-            Image(systemName: "internaldrive.fill")
+            Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: Metrics.iconHuge, height: Metrics.iconHuge)

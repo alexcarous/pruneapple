@@ -249,7 +249,7 @@ struct AdvancedTab: View {
 struct AboutTab: View {
     var body: some View {
         VStack(spacing: Metrics.spacingLarge) {
-            Image(systemName: "internaldrive.fill")
+            Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: Metrics.iconLarge, height: Metrics.iconLarge)
@@ -263,7 +263,7 @@ struct AboutTab: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 
-                Link("alex.caro.us", destination: URL(string: "https://alex.caro.us")!)
+                Link("Alexander Caro", destination: URL(string: "https://alex.caro.us")!)
                     .font(.subheadline)
                     .foregroundColor(.accentColor)
                     .padding(.top, Metrics.paddingVerySmall)
