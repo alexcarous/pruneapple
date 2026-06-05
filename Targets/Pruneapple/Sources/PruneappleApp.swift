@@ -12,6 +12,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 struct PruneappleApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var diskAnalyzer = DiskAnalyzer()
+    @StateObject private var updateManager = UpdateManager()
     
     var body: some Scene {
         WindowGroup {
@@ -26,6 +27,9 @@ struct PruneappleApp: App {
                     diskAnalyzer.reset()
                 }
                 .keyboardShortcut("n", modifiers: .command)
+            }
+            CommandGroup(after: .appInfo) {
+                CheckForUpdatesView(updater: updateManager.updaterController.updater)
             }
         }
         
