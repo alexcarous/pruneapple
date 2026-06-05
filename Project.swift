@@ -10,6 +10,10 @@ let project = Project(
             bundleId: "us.caro.alex.Pruneapple",
             deploymentTargets: .macOS("15.0"),
             infoPlist: .extendingDefault(with: [
+                "CFBundleIconFile": "AppIcon",
+                "CFBundleDisplayName": "Pruneapple",
+                "CFBundleName": "Pruneapple",
+                "NSHumanReadableCopyright": "Copyright © 2026 Alexander Caro. All rights reserved.",
                 "NSDesktopFolderUsageDescription": "Pruneapple requires access to your Desktop to calculate folder sizes.",
                 "NSDocumentsFolderUsageDescription": "Pruneapple requires access to your Documents to calculate folder sizes.",
                 "NSDownloadsFolderUsageDescription": "Pruneapple requires access to your Downloads to calculate folder sizes.",
@@ -17,7 +21,9 @@ let project = Project(
                 "NSNetworkVolumesUsageDescription": "Pruneapple requires access to network drives to scan their contents."
             ]),
             sources: ["Targets/Pruneapple/Sources/**"],
-            resources: [.glob(pattern: "Targets/Pruneapple/Resources/**", excluding: ["Targets/Pruneapple/Resources/Pruneapple.entitlements"])],
+            resources: [
+                "Targets/Pruneapple/Resources/Assets.xcassets"
+            ],
             entitlements: "Targets/Pruneapple/Resources/Pruneapple.entitlements"
         ),
         .target(
