@@ -1,7 +1,5 @@
 # Pruneapple 🍍
 
-Hey there! I'm [Alexander Caro](https://alex.caro.us), and I built Pruneapple because I was honestly just tired of not knowing what was eating up all my Mac's storage. 
-
 Pruneapple is a native macOS app that scans your disk to find those massive, forgotten files and folders. The best part? It's completely read-only, which means it will never accidentally delete anything important. It's just a tool to help you see what's going on, and then you can decide what to do with that information by revealing it in Finder.
 
 ## Why this app?
@@ -34,6 +32,3 @@ If you want to run the automated `swift-testing` suite, just run:
 ```bash
 make test
 ```
-
----
-*Built with ❤️ (and a lot of coffee) by [Alexander Caro](https://alex.caro.us).*
