@@ -99,6 +99,11 @@ struct ResultTableView: View {
                 
                 Spacer()
                 
+                Button(String(localized: "New Scan"), systemImage: "arrow.counterclockwise") {
+                    diskAnalyzer.reset()
+                }
+                .buttonStyle(.bordered)
+                
                 Button(String(localized: "Export CSV")) {
                     CSVExporter.export(rootItem)
                 }
