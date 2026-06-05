@@ -17,11 +17,11 @@ clean:
 	mise exec -- tuist clean
 
 build: setup
-	xcodebuild build -workspace CleanApple.xcworkspace -scheme CleanApple -configuration Release -derivedDataPath ./build
+	xcodebuild build -workspace Pruneapple.xcworkspace -scheme Pruneapple -configuration Release -derivedDataPath ./build
 	@echo "========================================="
 	@echo "✅ App compiled successfully!"
-	@echo "📍 Location: ./build/Build/Products/Release/CleanApple.app"
+	@echo "📍 Location: ./build/Build/Products/Release/Pruneapple.app"
 	@echo "========================================="
 
 run: build
-	open ./build/Build/Products/Release/CleanApple.app
+	open ./build/Build/Products/Release/Pruneapple.app

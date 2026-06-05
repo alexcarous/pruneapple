@@ -1,5 +1,5 @@
 import XCTest
-@testable import CleanApple
+@testable import Pruneapple
 import Foundation
 
 final class ScannerEngineTests: XCTestCase {

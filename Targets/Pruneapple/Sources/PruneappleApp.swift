@@ -9,7 +9,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 @main
-struct CleanAppleApp: App {
+struct PruneappleApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var diskAnalyzer = DiskAnalyzer()
     
@@ -27,7 +27,7 @@ struct CleanAppleApp: App {
         }
         
         MenuBarExtra {
-            Button(String(localized: "Open CleanApple")) {
+            Button(String(localized: "Open Pruneapple")) {
                 NSApp.activate(ignoringOtherApps: true)
                 if let window = NSApp.windows.first {
                     window.makeKeyAndOrderFront(nil)
@@ -36,7 +36,7 @@ struct CleanAppleApp: App {
             
             Divider()
             
-            Button(String(localized: "Quit CleanApple")) {
+            Button(String(localized: "Quit Pruneapple")) {
                 NSApplication.shared.terminate(nil)
             }
         } label: {
@@ -100,7 +100,7 @@ struct WelcomeView: View {
                 .scaleEffect(dragOver ? 1.1 : 1.0)
                 .animation(.spring(), value: dragOver)
             
-            Text(String(localized: "CleanApple Disk Analyzer"))
+            Text(String(localized: "Pruneapple Disk Analyzer"))
                 .font(.title)
                 .fontWeight(.bold)
             

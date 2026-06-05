@@ -81,7 +81,7 @@ struct ResultTableView: View {
                     VStack(alignment: .leading, spacing: Metrics.spacingStandard) {
                         Text(String(localized: "Physical Disk Space"))
                             .font(.headline)
-                        Text(String(localized: "CleanApple measures the actual physical sectors allocated on disk by APFS. This accounts for:"))
+                        Text(String(localized: "Pruneapple measures the actual physical sectors allocated on disk by APFS. This accounts for:"))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         
@@ -110,7 +110,7 @@ struct ResultTableView: View {
                 HStack(spacing: Metrics.spacingStandard) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(.orange)
-                    Text(String(localized: "Some folders were skipped due to permission errors. If you just granted access, please restart CleanApple."))
+                    Text(String(localized: "Some folders were skipped due to permission errors. If you just granted access, please restart Pruneapple."))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     

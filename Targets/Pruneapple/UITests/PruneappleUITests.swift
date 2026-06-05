@@ -1,6 +1,6 @@
 import XCTest
 
-final class CleanAppleUITests: XCTestCase {
+final class PruneappleUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
     }

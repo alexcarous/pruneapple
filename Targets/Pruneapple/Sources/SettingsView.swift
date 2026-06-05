@@ -78,8 +78,8 @@ struct PermissionsTab: View {
                         .font(.headline)
                     
                     Text(permissionManager.hasFullDiskAccess 
-                         ? String(localized: "CleanApple has full permission to analyze files and folders on your disk.")
-                         : String(localized: "CleanApple lacks Full Disk Access. Some system and user directories will be skipped during analysis."))
+                         ? String(localized: "Pruneapple has full permission to analyze files and folders on your disk.")
+                         : String(localized: "Pruneapple lacks Full Disk Access. Some system and user directories will be skipped during analysis."))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .lineLimit(2)
@@ -103,9 +103,9 @@ struct PermissionsTab: View {
                     
                     VStack(alignment: .leading, spacing: Metrics.spacingSmall) {
                         InstructionRow(step: "1", text: String(localized: "Click the \"Open System Settings\" button below."))
-                        InstructionRow(step: "2", text: String(localized: "Locate or add \"CleanApple\" in the Full Disk Access list."))
-                        InstructionRow(step: "3", text: String(localized: "Enable the switch next to CleanApple to grant access."))
-                        InstructionRow(step: "4", text: String(localized: "Restart CleanApple if permissions do not apply immediately."))
+                        InstructionRow(step: "2", text: String(localized: "Locate or add \"Pruneapple\" in the Full Disk Access list."))
+                        InstructionRow(step: "3", text: String(localized: "Enable the switch next to Pruneapple to grant access."))
+                        InstructionRow(step: "4", text: String(localized: "Restart Pruneapple if permissions do not apply immediately."))
                     }
                     
                     Button(action: {
@@ -122,7 +122,7 @@ struct PermissionsTab: View {
                 VStack(alignment: .leading, spacing: Metrics.spacingStandard) {
                     Text(String(localized: "Permissions Active"))
                         .font(.headline)
-                    Text(String(localized: "All scanned folders will be parsed correctly. Note: If folders are still being skipped after granting access, you may need to restart CleanApple for the System FDA permissions to take full effect."))
+                    Text(String(localized: "All scanned folders will be parsed correctly. Note: If folders are still being skipped after granting access, you may need to restart Pruneapple for the System FDA permissions to take full effect."))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -226,7 +226,7 @@ struct AdvancedTab: View {
         Form {
             Section(header: Text(String(localized: "Scan Rules")).font(.headline)) {
                 Toggle(String(localized: "Ignore hidden files and folders"), isOn: $skipHiddenFiles)
-                    .help(String(localized: "When enabled, CleanApple will skip over system hidden items like .DS_Store, .git, etc."))
+                    .help(String(localized: "When enabled, Pruneapple will skip over system hidden items like .DS_Store, .git, etc."))
                 
                 Toggle(String(localized: "Ignore macOS package contents"), isOn: $skipPackages)
                     .help(String(localized: "When enabled, application bundles (.app) and frameworks (.framework) will be catalogued as simple files rather than directories."))
@@ -237,7 +237,7 @@ struct AdvancedTab: View {
             
             HStack {
                 Spacer()
-                Text(String(localized: "CleanApple v1.0.0"))
+                Text(String(localized: "Pruneapple v1.0.0"))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -256,7 +256,7 @@ struct AboutTab: View {
                 .foregroundColor(.accentColor)
             
             VStack(spacing: Metrics.spacingVerySmall) {
-                Text(String(localized: "CleanApple"))
+                Text(String(localized: "Pruneapple"))
                     .font(.title)
                     .fontWeight(.bold)
                 Text(String(localized: "Version 1.0.0 (Build 1)"))
