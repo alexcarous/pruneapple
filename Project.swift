@@ -22,7 +22,13 @@ let project = Project(
                 "NSRemovableVolumesUsageDescription": "Pruneapple requires access to external drives to scan their contents.",
                 "NSNetworkVolumesUsageDescription": "Pruneapple requires access to network drives to scan their contents.",
                 "SUFeedURL": "https://alex.caro.us/pruneapple/appcast.xml",
-                "SUPublicEDKey": "O6PUodfxeFe6K3xz1CBrg7yoYGtoC8AzeoNwSFl9BPE="
+                "SUPublicEDKey": "O6PUodfxeFe6K3xz1CBrg7yoYGtoC8AzeoNwSFl9BPE=",
+                "CFBundleURLTypes": [
+                    [
+                        "CFBundleURLSchemes": ["pruneapple"],
+                        "CFBundleURLName": "us.caro.alex.Pruneapple"
+                    ]
+                ]
             ]),
             sources: ["Targets/Pruneapple/Sources/**"],
             resources: [

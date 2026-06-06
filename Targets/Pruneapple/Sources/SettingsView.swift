@@ -8,6 +8,7 @@ struct SettingsView: View {
     enum Tab: String, CaseIterable, Identifiable {
         case permissions = "Permissions"
         case advanced = "Advanced"
+        case donate = "Donate"
         case about = "About"
         
         var id: String { self.rawValue }
@@ -16,6 +17,7 @@ struct SettingsView: View {
             switch self {
             case .permissions: return "lock.shield"
             case .advanced: return "gearshape.2"
+            case .donate: return "heart.fill"
             case .about: return "info.circle"
             }
         }
@@ -35,6 +37,12 @@ struct SettingsView: View {
                 }
                 .tag(Tab.advanced)
             
+            DonationView()
+                .tabItem {
+                    Label(activeTabTitle(for: .donate), systemImage: Tab.donate.icon)
+                }
+                .tag(Tab.donate)
+            
             AboutTab()
                 .tabItem {
                     Label(activeTabTitle(for: .about), systemImage: Tab.about.icon)
@@ -50,6 +58,7 @@ struct SettingsView: View {
         switch tab {
         case .permissions: return String(localized: "Permissions")
         case .advanced: return String(localized: "Advanced")
+        case .donate: return String(localized: "Donate")
         case .about: return String(localized: "About")
         }
     }
