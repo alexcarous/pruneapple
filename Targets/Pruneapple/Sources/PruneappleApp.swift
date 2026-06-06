@@ -10,6 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 @main
 struct PruneappleApp: App {
+    @Environment(\.openWindow) private var openWindow
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var diskAnalyzer = DiskAnalyzer()
     @StateObject private var updateManager = UpdateManager()
@@ -37,8 +38,20 @@ struct PruneappleApp: App {
                         NSWorkspace.shared.open(url)
                     }
                 }
+                
+                Divider()
+                
+                Button(String(localized: "Support Pruneapple")) {
+                    openWindow(id: "donation")
+                }
             }
         }
+        
+        Window(String(localized: "Support Pruneapple"), id: "donation") {
+            DonationView()
+                .frame(width: 520, height: 380)
+        }
+        .windowResizability(.contentSize)
         
         Settings {
             SettingsView()
@@ -176,35 +189,108 @@ struct ThankYouView: View {
 struct WelcomeView: View {
     @Environment(DiskAnalyzer.self) private var diskAnalyzer
     @Binding var dragOver: Bool
+    @Environment(\.openWindow) private var openWindow
+    
+    @AppStorage("successfulScanCount") private var successfulScanCount = 0
+    @AppStorage("hasDismissedDonationBanner") private var hasDismissedDonationBanner = false
     
     var body: some View {
-        VStack(spacing: Metrics.spacingExtraLarge) {
-            Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: Metrics.iconHuge, height: Metrics.iconHuge)
-                .foregroundColor(dragOver ? .accentColor : .secondary)
-                .scaleEffect(dragOver ? 1.1 : 1.0)
-                .animation(.spring(), value: dragOver)
+        VStack(spacing: Metrics.spacingNone) {
+            if successfulScanCount >= 3 && !hasDismissedDonationBanner {
+                donationBanner
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
             
-            Text(String(localized: "Pruneapple Disk Analyzer"))
-                .font(.title)
-                .fontWeight(.bold)
+            VStack(spacing: Metrics.spacingExtraLarge) {
+                Spacer()
+                
+                Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: Metrics.iconHuge, height: Metrics.iconHuge)
+                    .foregroundColor(dragOver ? .accentColor : .secondary)
+                    .scaleEffect(dragOver ? 1.1 : 1.0)
+                    .animation(.spring(), value: dragOver)
+                
+                Text(String(localized: "Pruneapple Disk Analyzer"))
+                    .font(.title)
+                    .fontWeight(.bold)
+                
+                Text(String(localized: "Drag and drop a folder here, or select one below to scan physical disk usage."))
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, Metrics.paddingDoubleExtraLarge)
+                
+                Button(String(localized: "Select Folder to Scan...")) {
+                    selectFolderAndScan()
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(dragOver ? Color.accentColor.opacity(0.05) : Color.clear)
+        }
+    }
+    
+    private var donationBanner: some View {
+        HStack(spacing: Metrics.spacingLarge) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.pink, .purple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 36, height: 36)
+                
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+            }
             
-            Text(String(localized: "Drag and drop a folder here, or select one below to scan physical disk usage."))
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, Metrics.paddingDoubleExtraLarge)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(String(localized: "Enjoying Pruneapple?"))
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text(String(localized: "You've completed \(successfulScanCount) successful scans! Please consider supporting development."))
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
             
-            Button(String(localized: "Select Folder to Scan...")) {
-                selectFolderAndScan()
+            Spacer()
+            
+            Button(String(localized: "Support Developer")) {
+                openWindow(id: "donation")
             }
             .buttonStyle(.borderedProminent)
-            .controlSize(.large)
+            .controlSize(.regular)
+            
+            Button(action: {
+                withAnimation(.spring()) {
+                    hasDismissedDonationBanner = true
+                }
+            }) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.secondary)
+                    .font(.title3)
+            }
+            .buttonStyle(.plain)
+            .help(String(localized: "Dismiss"))
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(dragOver ? Color.accentColor.opacity(0.05) : Color.clear)
+        .padding(.horizontal, Metrics.paddingExtraLarge)
+        .padding(.vertical, Metrics.paddingLarge)
+        .background(
+            RoundedRectangle(cornerRadius: Metrics.cornerRadiusMedium)
+                .fill(Color(NSColor.windowBackgroundColor))
+                .shadow(color: Color.black.opacity(0.08), radius: 6, y: 2)
+        )
+        .padding([.horizontal, .top], Metrics.paddingExtraLarge)
     }
     
     private func selectFolderAndScan() {
