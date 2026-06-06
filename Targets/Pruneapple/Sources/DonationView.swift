@@ -53,9 +53,10 @@ struct DonationView: View {
     ]
     
     var body: some View {
-        ScrollView(.vertical, showsIndicators: true) {
-            VStack(spacing: Metrics.spacingLarge) {
-                // Header
+        VStack(spacing: 0) {
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(spacing: Metrics.spacingLarge) {
+                    // Header
                 VStack(spacing: Metrics.spacingVerySmall) {
                     Image(systemName: "heart.circle.fill")
                         .resizable()
@@ -146,22 +147,21 @@ struct DonationView: View {
                     }
                 }
                 .padding(.horizontal, Metrics.paddingExtraLarge)
-                
-                Spacer()
-                
-                // Footer
-                HStack(spacing: Metrics.spacingVerySmall) {
-                    Image(systemName: "lock.fill")
-                        .foregroundColor(.secondary)
-                    Text(String(localized: "Secured by Stripe"))
-                        .fontWeight(.semibold)
-                    Text("•")
-                    Text(String(localized: "Redirects back automatically"))
-                }
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .padding(.bottom, Metrics.paddingMedium)
             }
+            .padding(.vertical, Metrics.paddingMedium)
+        }
+            
+        // Footer
+            HStack(spacing: Metrics.spacingVerySmall) {
+                Image(systemName: "lock.fill")
+                    .foregroundColor(.secondary)
+                Text(String(localized: "Secured by Stripe"))
+                    .fontWeight(.semibold)
+                Text("•")
+                Text(String(localized: "Redirects back automatically"))
+            }
+            .font(.caption)
+            .foregroundColor(.secondary)
             .padding(.vertical, Metrics.paddingMedium)
         }
     }

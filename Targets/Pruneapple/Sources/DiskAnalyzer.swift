@@ -52,12 +52,10 @@ public final class DiskAnalyzer: Sendable {
                 self.skippedURLs = result.skippedURLs
                 self.progressBytes = result.rootItem.physicalSize
                 
-                // Track successful scan count for donation prompt if it meets the utility threshold (>1GB or >100 files)
-                if result.rootItem.physicalSize > 1_000_000_000 || self.progressFiles > 100 {
-                    let key = AppStorageKeys.successfulScanCount.rawValue
-                    let count = UserDefaults.standard.integer(forKey: key)
-                    UserDefaults.standard.set(count + 1, forKey: key)
-                }
+                // Track successful scan count for donation prompt
+                let key = AppStorageKeys.successfulScanCount.rawValue
+                let count = UserDefaults.standard.integer(forKey: key)
+                UserDefaults.standard.set(count + 1, forKey: key)
                 
                 // Trigger physical trackpad feedback on completion
                 NSHapticFeedbackManager.defaultPerformer.perform(
