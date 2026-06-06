@@ -6,6 +6,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
     }
+    
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard let url = urls.first else { return }
+        if url.scheme == "pruneapple" && url.host == "donate-success" {
+            NSApp.activate(ignoringOtherApps: true)
+            NotificationCenter.default.post(name: .didReceiveDonateSuccessURL, object: nil)
+        }
+    }
 }
 
 @main
@@ -49,7 +57,11 @@ struct PruneappleApp: App {
         
         Window(String(localized: "Support Pruneapple"), id: "donation") {
             DonationView()
-                .frame(width: 520, height: 380)
+                .frame(minWidth: 520, minHeight: 400, idealHeight: 450)
+        }
+        
+        Window(String(localized: "Thank You"), id: "thankYou") {
+            ThankYouView()
         }
         .windowResizability(.contentSize)
         
@@ -81,7 +93,6 @@ struct PruneappleApp: App {
 struct MainView: View {
     @Environment(DiskAnalyzer.self) private var diskAnalyzer
     @State private var dragOver = false
-    @State private var showThankYou = false
     
     var body: some View {
         VStack(spacing: Metrics.spacingNone) {
@@ -115,15 +126,6 @@ struct MainView: View {
             if let errorMessage = diskAnalyzer.errorMessage {
                 Text(errorMessage)
             }
-        }
-        .onOpenURL { url in
-            if url.scheme == "pruneapple" && url.host == "donate-success" {
-                NSApp.activate(ignoringOtherApps: true)
-                showThankYou = true
-            }
-        }
-        .sheet(isPresented: $showThankYou) {
-            ThankYouView()
         }
     }
 }
@@ -191,12 +193,12 @@ struct WelcomeView: View {
     @Binding var dragOver: Bool
     @Environment(\.openWindow) private var openWindow
     
-    @AppStorage("successfulScanCount") private var successfulScanCount = 0
-    @AppStorage("hasDismissedDonationBanner") private var hasDismissedDonationBanner = false
+    @AppStorage(AppStorageKeys.successfulScanCount.rawValue) private var successfulScanCount = 0
+    @AppStorage(AppStorageKeys.donationBannerDismissedAt.rawValue) private var donationBannerDismissedAt: Double = 0
     
     var body: some View {
         VStack(spacing: Metrics.spacingNone) {
-            if successfulScanCount >= 3 && !hasDismissedDonationBanner {
+            if successfulScanCount >= 3 && (donationBannerDismissedAt == 0 || Date().timeIntervalSince1970 - donationBannerDismissedAt > 2_592_000) {
                 donationBanner
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
@@ -273,7 +275,7 @@ struct WelcomeView: View {
             
             Button(action: {
                 withAnimation(.spring()) {
-                    hasDismissedDonationBanner = true
+                    donationBannerDismissedAt = Date().timeIntervalSince1970
                 }
             }) {
                 Image(systemName: "xmark.circle.fill")
@@ -354,16 +356,26 @@ struct ScanningProgressView: View {
 
 struct MenuBarLabel: View {
     @Environment(DiskAnalyzer.self) private var diskAnalyzer
+    @Environment(\.openWindow) private var openWindow
     
     var body: some View {
-        if diskAnalyzer.isScanning {
-            // Animated pie chart / progress simulator
-            Image(systemName: "chart.pie.fill")
-                .symbolEffect(.bounce, options: .repeating)
-        } else {
-            Image(systemName: "internaldrive")
+        Group {
+            if diskAnalyzer.isScanning {
+                // Animated pie chart / progress simulator
+                Image(systemName: "chart.pie.fill")
+                    .symbolEffect(.bounce, options: .repeating)
+            } else {
+                Image(systemName: "internaldrive")
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .didReceiveDonateSuccessURL)) { _ in
+            openWindow(id: "thankYou")
         }
     }
+}
+
+extension Notification.Name {
+    static let didReceiveDonateSuccessURL = Notification.Name("didReceiveDonateSuccessURL")
 }
 
 
