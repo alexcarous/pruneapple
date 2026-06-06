@@ -19,7 +19,7 @@ struct DonationView: View {
             name: String(localized: "Buy me a coffee"),
             price: "$5",
             description: String(localized: "Fuel active development and support minor releases."),
-            url: "https://buy.stripe.com/test_555_coffee",
+            url: "https://buy.stripe.com/3cs3fXaST6uy9MI006",
             icon: "cup.and.saucer.fill",
             gradientColors: [Color.brown, Color.orange]
         ),
@@ -28,7 +28,7 @@ struct DonationView: View {
             name: String(localized: "Buy me a matcha"),
             price: "$10",
             description: String(localized: "Keep the codebase optimized and the servers running."),
-            url: "https://buy.stripe.com/test_555_matcha",
+            url: "https://donate.stripe.com/bJeaEY5Fe5Nw6LHdC9bV607",
             icon: "leaf.fill",
             gradientColors: [Color.green, Color.mint]
         ),
@@ -37,7 +37,7 @@ struct DonationView: View {
             name: String(localized: "Buy me a moka pot"),
             price: "$50",
             description: String(localized: "A substantial contribution to unlock major future updates."),
-            url: "https://buy.stripe.com/test_555_mokapot",
+            url: "https://buy.stripe.com/4gMcN61oYa3M8TPgOlbV608",
             icon: "flame.fill",
             gradientColors: [Color.red, Color.orange]
         ),
@@ -46,7 +46,7 @@ struct DonationView: View {
             name: String(localized: "Espresso Machine"),
             price: String(localized: "Custom"),
             description: String(localized: "Choose your own level of support for Pruneapple."),
-            url: "https://buy.stripe.com/test_555_espresso",
+            url: "https://donate.stripe.com/cNi5kE9Vu4Js8TPgOlbV609",
             icon: "star.fill",
             gradientColors: [Color.purple, Color.indigo]
         )
