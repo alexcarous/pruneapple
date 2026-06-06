@@ -20,7 +20,7 @@ struct DonationView: View {
             price: "$5",
             description: String(localized: "Fuel active development and support minor releases."),
             url: "https://buy.stripe.com/3cs3fXaST6uy9MI006",
-            icon: "cup.and.saucer.fill",
+            icon: "coffee-donation",
             gradientColors: [Color.brown, Color.orange]
         ),
         DonationTier(
@@ -29,7 +29,7 @@ struct DonationView: View {
             price: "$10",
             description: String(localized: "Keep the codebase optimized and the servers running."),
             url: "https://donate.stripe.com/bJeaEY5Fe5Nw6LHdC9bV607",
-            icon: "leaf.fill",
+            icon: "matcha-donation",
             gradientColors: [Color.green, Color.mint]
         ),
         DonationTier(
@@ -38,7 +38,7 @@ struct DonationView: View {
             price: "$50",
             description: String(localized: "A substantial contribution to unlock major future updates."),
             url: "https://buy.stripe.com/4gMcN61oYa3M8TPgOlbV608",
-            icon: "flame.fill",
+            icon: "mokapot-donation",
             gradientColors: [Color.red, Color.orange]
         ),
         DonationTier(
@@ -47,7 +47,7 @@ struct DonationView: View {
             price: String(localized: "Custom"),
             description: String(localized: "Choose your own level of support for Pruneapple."),
             url: "https://donate.stripe.com/cNi5kE9Vu4Js8TPgOlbV609",
-            icon: "star.fill",
+            icon: "espresso-donation",
             gradientColors: [Color.purple, Color.indigo]
         )
     ]
@@ -93,16 +93,10 @@ struct DonationView: View {
                             }
                         }) {
                             HStack(alignment: .top, spacing: Metrics.spacingStandard) {
-                                // Icon container with colored gradient background
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: Metrics.cornerRadiusStandard)
-                                        .fill(.linearGradient(colors: tier.gradientColors, startPoint: .top, endPoint: .bottom))
-                                        .frame(width: 36, height: 36)
-                                    
-                                    Image(systemName: tier.icon)
-                                        .font(.title3)
-                                        .foregroundColor(.white)
-                                }
+                                Image(tier.icon)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 44, height: 44)
                                 
                                 VStack(alignment: .leading, spacing: Metrics.spacingVerySmall) {
                                     HStack {
