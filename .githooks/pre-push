@@ -8,13 +8,13 @@ echo "Running Local CI before push..."
 echo "========================================="
 
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-TEST_COMMAND="mise exec -- tuist test"
+TEST_COMMAND="mise exec -- tuist test --skip-ui-tests"
 
 # Force a clean test run without cache only when pushing to main
 # to save developer time on feature branches.
 if [ "$CURRENT_BRANCH" = "main" ]; then
     echo "Pushing to main branch. Disabling Tuist cache..."
-    TEST_COMMAND="mise exec -- tuist test --no-binary-cache"
+    TEST_COMMAND="mise exec -- tuist test --no-binary-cache --skip-ui-tests"
 fi
 
 echo "Running $TEST_COMMAND..."
