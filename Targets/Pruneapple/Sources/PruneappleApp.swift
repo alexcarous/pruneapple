@@ -1,35 +1,30 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-class AppDelegate: NSObject, NSApplicationDelegate {
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
-    }
-    
-    func application(_ application: NSApplication, open urls: [URL]) {
-        guard let url = urls.first else { return }
-        if url.scheme == "pruneapple" && url.host == "donate-success" {
-            NSApp.activate(ignoringOtherApps: true)
-            Task { @MainActor in
-                DeepLinkManager.shared.openThankYouWindow = true
-            }
-        }
-    }
-}
-
 @main
 struct PruneappleApp: App {
     @Environment(\.openWindow) private var openWindow
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var diskAnalyzer = DiskAnalyzer()
     @StateObject private var updateManager = UpdateManager()
+    
+    init() {
+        if NSClassFromString("XCTest") == nil {
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+    }
     
     var body: some Scene {
         WindowGroup {
             MainView()
                 .environment(diskAnalyzer)
                 .frame(minWidth: Metrics.minWindowWidth, minHeight: Metrics.minWindowHeight)
+                .onOpenURL { url in
+                    if url.scheme == "pruneapple" && url.host == "donate-success" {
+                        NSApp.activate(ignoringOtherApps: true)
+                        openWindow(id: "thankYou")
+                    }
+                }
         }
         .windowStyle(.hiddenTitleBar)
         .commands {
@@ -358,8 +353,6 @@ struct ScanningProgressView: View {
 
 struct MenuBarLabel: View {
     @Environment(DiskAnalyzer.self) private var diskAnalyzer
-    @Environment(\.openWindow) private var openWindow
-    @State private var deepLinkManager = DeepLinkManager.shared
     
     var body: some View {
         Group {
@@ -369,12 +362,6 @@ struct MenuBarLabel: View {
                     .symbolEffect(.bounce, options: .repeating)
             } else {
                 Image(systemName: "internaldrive")
-            }
-        }
-        .onChange(of: deepLinkManager.openThankYouWindow, initial: true) { _, newValue in
-            if newValue {
-                openWindow(id: "thankYou")
-                deepLinkManager.openThankYouWindow = false
             }
         }
     }

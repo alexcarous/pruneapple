@@ -9,6 +9,8 @@ build/
 dist/
 DerivedData/
 .build/
+/Release
+
 
 # Tuist / Xcode Generated
 *.xcodeproj
