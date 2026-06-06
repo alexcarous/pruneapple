@@ -16,7 +16,7 @@ struct DonationView: View {
     let tiers: [DonationTier] = [
         DonationTier(
             id: "coffee",
-            name: String(localized: "Buy a Coffee"),
+            name: String(localized: "Buy me a coffee"),
             price: "$5",
             description: String(localized: "Fuel active development and support minor releases."),
             url: "https://buy.stripe.com/test_555_coffee",
@@ -24,31 +24,31 @@ struct DonationView: View {
             gradientColors: [Color.brown, Color.orange]
         ),
         DonationTier(
-            id: "pizza",
-            name: String(localized: "Buy a Pizza"),
-            price: "$15",
+            id: "matcha",
+            name: String(localized: "Buy me a matcha"),
+            price: "$10",
             description: String(localized: "Keep the codebase optimized and the servers running."),
-            url: "https://buy.stripe.com/test_555_pizza",
-            icon: "takeoutbag.and.cup.and.straw.fill",
+            url: "https://buy.stripe.com/test_555_matcha",
+            icon: "leaf.fill",
+            gradientColors: [Color.green, Color.mint]
+        ),
+        DonationTier(
+            id: "mokapot",
+            name: String(localized: "Buy me a moka pot"),
+            price: "$50",
+            description: String(localized: "A substantial contribution to unlock major future updates."),
+            url: "https://buy.stripe.com/test_555_mokapot",
+            icon: "flame.fill",
             gradientColors: [Color.red, Color.orange]
         ),
         DonationTier(
-            id: "patron",
-            name: String(localized: "Generous Patron"),
-            price: "$35",
-            description: String(localized: "A substantial contribution to unlock major future updates."),
-            url: "https://buy.stripe.com/test_555_patron",
-            icon: "crown.fill",
-            gradientColors: [Color.purple, Color.indigo]
-        ),
-        DonationTier(
-            id: "custom",
-            name: String(localized: "Custom Amount"),
-            price: String(localized: "Any"),
+            id: "espresso",
+            name: String(localized: "Espresso Machine"),
+            price: String(localized: "Custom"),
             description: String(localized: "Choose your own level of support for Pruneapple."),
-            url: "https://buy.stripe.com/test_555_custom",
-            icon: "heart.text.square.fill",
-            gradientColors: [Color.teal, Color.blue]
+            url: "https://buy.stripe.com/test_555_espresso",
+            icon: "star.fill",
+            gradientColors: [Color.purple, Color.indigo]
         )
     ]
     
