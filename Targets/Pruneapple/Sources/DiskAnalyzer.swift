@@ -52,6 +52,10 @@ public final class DiskAnalyzer: Sendable {
                 self.skippedURLs = result.skippedURLs
                 self.progressBytes = result.rootItem.physicalSize
                 
+                // Track successful scan count for donation prompt
+                let count = UserDefaults.standard.integer(forKey: "successfulScanCount")
+                UserDefaults.standard.set(count + 1, forKey: "successfulScanCount")
+                
                 // Trigger physical trackpad feedback on completion
                 NSHapticFeedbackManager.defaultPerformer.perform(
                     .alignment,
