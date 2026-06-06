@@ -216,10 +216,6 @@ public actor ScannerEngine {
             
             while let url = enumerator.nextObject() as? URL {
                 counter += 1
-                if counter % 1000 == 0 {
-                    try Task.checkCancellation()
-                }
-                
                 try Task.checkCancellation()
                 
                 try autoreleasepool {
