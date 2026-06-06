@@ -68,6 +68,7 @@ struct PruneappleApp: App {
 struct MainView: View {
     @Environment(DiskAnalyzer.self) private var diskAnalyzer
     @State private var dragOver = false
+    @State private var showThankYou = false
     
     var body: some View {
         VStack(spacing: Metrics.spacingNone) {
@@ -102,6 +103,73 @@ struct MainView: View {
                 Text(errorMessage)
             }
         }
+        .onOpenURL { url in
+            if url.scheme == "pruneapple" && url.host == "donate-success" {
+                NSApp.activate(ignoringOtherApps: true)
+                showThankYou = true
+            }
+        }
+        .sheet(isPresented: $showThankYou) {
+            ThankYouView()
+        }
+    }
+}
+
+struct ThankYouView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var animatePopper = false
+    
+    var body: some View {
+        VStack(spacing: Metrics.spacingLarge) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.pink, .purple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 80, height: 80)
+                    .shadow(color: .pink.opacity(0.3), radius: 8)
+                
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 36))
+                    .foregroundColor(.white)
+                    .scaleEffect(animatePopper ? 1.15 : 0.85)
+                    .animation(
+                        .spring(response: 0.4, dampingFraction: 0.3)
+                        .repeatForever(autoreverses: true),
+                        value: animatePopper
+                    )
+            }
+            .padding(.top, Metrics.paddingExtraLarge)
+            .onAppear {
+                animatePopper = true
+            }
+            
+            VStack(spacing: Metrics.spacingVerySmall) {
+                Text(String(localized: "Thank You!"))
+                    .font(.title)
+                    .fontWeight(.bold)
+                
+                Text(String(localized: "Your donation directly supports the development of Pruneapple. We appreciate your generosity!"))
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, Metrics.paddingExtraLarge)
+            }
+            
+            Button(String(localized: "You're Welcome")) {
+                dismiss()
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .keyboardShortcut(.defaultAction)
+            .padding(.bottom, Metrics.paddingExtraLarge)
+        }
+        .frame(width: 380, height: 260)
+        .padding()
     }
 }
 

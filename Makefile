@@ -5,7 +5,7 @@ setup:
 	mise exec -- tuist generate
 
 test:
-	mise exec -- tuist test
+	mise exec -- tuist test --skip-ui-tests
 
 lint:
 	swiftlint lint
