@@ -248,6 +248,8 @@ struct AdvancedTab: View {
 }
 
 struct AboutTab: View {
+    @Environment(\.openWindow) private var openWindow
+    
     var body: some View {
         VStack(spacing: Metrics.spacingLarge) {
             Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
@@ -268,6 +270,15 @@ struct AboutTab: View {
                     .font(.subheadline)
                     .foregroundColor(.accentColor)
                     .padding(.top, Metrics.paddingVerySmall)
+                
+                Button(action: {
+                    openWindow(id: "donation")
+                }) {
+                    Label(String(localized: "Support Developer"), systemImage: "heart.fill")
+                        .foregroundColor(.pink)
+                }
+                .buttonStyle(.bordered)
+                .padding(.top, Metrics.paddingSmall)
             }
             
             Divider()
