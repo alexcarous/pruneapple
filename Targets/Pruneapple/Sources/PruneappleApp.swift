@@ -11,7 +11,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let url = urls.first else { return }
         if url.scheme == "pruneapple" && url.host == "donate-success" {
             NSApp.activate(ignoringOtherApps: true)
-            NotificationCenter.default.post(name: .didReceiveDonateSuccessURL, object: nil)
+            Task { @MainActor in
+                DeepLinkManager.shared.openThankYouWindow = true
+            }
         }
     }
 }
@@ -194,11 +196,11 @@ struct WelcomeView: View {
     @Environment(\.openWindow) private var openWindow
     
     @AppStorage(AppStorageKeys.successfulScanCount.rawValue) private var successfulScanCount = 0
-    @AppStorage(AppStorageKeys.donationBannerDismissedAt.rawValue) private var donationBannerDismissedAt: Double = 0
+    @AppStorage(AppStorageKeys.hasDismissedDonationBanner.rawValue) private var hasDismissedDonationBanner = false
     
     var body: some View {
         VStack(spacing: Metrics.spacingNone) {
-            if successfulScanCount >= 3 && (donationBannerDismissedAt == 0 || Date().timeIntervalSince1970 - donationBannerDismissedAt > 2_592_000) {
+            if successfulScanCount >= 3 && !hasDismissedDonationBanner {
                 donationBanner
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
@@ -275,7 +277,7 @@ struct WelcomeView: View {
             
             Button(action: {
                 withAnimation(.spring()) {
-                    donationBannerDismissedAt = Date().timeIntervalSince1970
+                    hasDismissedDonationBanner = true
                 }
             }) {
                 Image(systemName: "xmark.circle.fill")
@@ -357,6 +359,7 @@ struct ScanningProgressView: View {
 struct MenuBarLabel: View {
     @Environment(DiskAnalyzer.self) private var diskAnalyzer
     @Environment(\.openWindow) private var openWindow
+    @State private var deepLinkManager = DeepLinkManager.shared
     
     var body: some View {
         Group {
@@ -368,14 +371,13 @@ struct MenuBarLabel: View {
                 Image(systemName: "internaldrive")
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .didReceiveDonateSuccessURL)) { _ in
-            openWindow(id: "thankYou")
+        .onChange(of: deepLinkManager.openThankYouWindow, initial: true) { _, newValue in
+            if newValue {
+                openWindow(id: "thankYou")
+                deepLinkManager.openThankYouWindow = false
+            }
         }
     }
-}
-
-extension Notification.Name {
-    static let didReceiveDonateSuccessURL = Notification.Name("didReceiveDonateSuccessURL")
 }
 
 
