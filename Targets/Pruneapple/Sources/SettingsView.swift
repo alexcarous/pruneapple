@@ -43,7 +43,7 @@ struct SettingsView: View {
                 }
                 .tag(Tab.donation)
 
-            AboutTab()
+            AboutTab(activeTab: $activeTab)
                 .tabItem {
                     Label(activeTabTitle(for: .about), systemImage: Tab.about.icon)
                 }
@@ -228,8 +228,8 @@ struct InstructionRow: View {
 }
 
 struct AdvancedTab: View {
-    @State private var skipHiddenFiles = false
-    @State private var skipPackages = false
+    @AppStorage(AppStorageKeys.skipHiddenFiles.rawValue) private var skipHiddenFiles = false
+    @AppStorage(AppStorageKeys.skipPackages.rawValue) private var skipPackages = false
     
     var body: some View {
         Form {
@@ -256,7 +256,7 @@ struct AdvancedTab: View {
 }
 
 struct AboutTab: View {
-    @Environment(\.openWindow) private var openWindow
+    @Binding var activeTab: SettingsView.Tab
     
     var body: some View {
         VStack(spacing: Metrics.spacingLarge) {
@@ -280,7 +280,7 @@ struct AboutTab: View {
                     .padding(.top, Metrics.paddingVerySmall)
                 
                 Button(action: {
-                    openWindow(id: "donation")
+                    activeTab = .donation
                 }) {
                     Label(String(localized: "Support Developer"), systemImage: "heart.fill")
                         .foregroundColor(.pink)

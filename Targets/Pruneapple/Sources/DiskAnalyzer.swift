@@ -37,7 +37,14 @@ public final class DiskAnalyzer: Sendable {
         scanTask = Task { [weak self] in
             guard let self = self else { return }
             do {
-                let result = try await self.engine.scan(at: url) { progress in
+                let skipHidden = UserDefaults.standard.bool(forKey: AppStorageKeys.skipHiddenFiles.rawValue)
+                let skipPackages = UserDefaults.standard.bool(forKey: AppStorageKeys.skipPackages.rawValue)
+                
+                let result = try await self.engine.scan(
+                    at: url,
+                    skipHiddenFiles: skipHidden,
+                    skipPackages: skipPackages
+                ) { progress in
                     Task { @MainActor in
                         guard !Task.isCancelled else { return }
                         self.progressBytes = progress.bytesScanned

@@ -18,7 +18,7 @@ final class ScannerEngineTests: XCTestCase {
         try dummyData.write(to: testFile)
         
         let engine = ScannerEngine()
-        let scanResult = try await engine.scan(at: tempDir) { progress in
+        let scanResult = try await engine.scan(at: tempDir, skipHiddenFiles: false, skipPackages: false) { progress in
             XCTAssertGreaterThanOrEqual(progress.filesCount, 0)
         }
         let result = scanResult.rootItem
@@ -49,7 +49,7 @@ final class ScannerEngineTests: XCTestCase {
         try dummyData.write(to: testFile)
         
         let engine = ScannerEngine()
-        let scanResult = try await engine.scan(at: tempDir) { _ in }
+        let scanResult = try await engine.scan(at: tempDir, skipHiddenFiles: false, skipPackages: false) { _ in }
         let result = scanResult.rootItem
         
         XCTAssertTrue(result.isDirectory)
@@ -98,7 +98,7 @@ final class ScannerEngineTests: XCTestCase {
         try fileManager.linkItem(at: file1, to: file2)
         
         let engine = ScannerEngine()
-        let scanResult = try await engine.scan(at: tempDir) { _ in }
+        let scanResult = try await engine.scan(at: tempDir, skipHiddenFiles: false, skipPackages: false) { _ in }
         let result = scanResult.rootItem
         
         let children = try XCTUnwrap(result.children)
@@ -127,7 +127,7 @@ final class ScannerEngineTests: XCTestCase {
         try dummyData.write(to: execFile)
         
         let engine = ScannerEngine()
-        let scanResult = try await engine.scan(at: tempDir) { _ in }
+        let scanResult = try await engine.scan(at: tempDir, skipHiddenFiles: false, skipPackages: false) { _ in }
         let result = scanResult.rootItem
         
         let children = try XCTUnwrap(result.children)
@@ -158,12 +158,79 @@ final class ScannerEngineTests: XCTestCase {
             try dummyData.write(to: testFile)
             
             let engine = ScannerEngine()
-            let scanResult = try await engine.scan(at: tempDir) { _ in }
+            let scanResult = try await engine.scan(at: tempDir, skipHiddenFiles: false, skipPackages: false) { _ in }
             let result = scanResult.rootItem
             
             XCTAssertGreaterThanOrEqual(result.physicalSize, 0)
             let children = try XCTUnwrap(result.children)
             XCTAssertTrue(children.contains { $0.name == filename })
         }
+    }
+    
+    func testHiddenFilesSkipping() async throws {
+        let fileManager = FileManager.default
+        let tempDir = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        
+        defer {
+            try? fileManager.removeItem(at: tempDir)
+        }
+        
+        let hiddenFile = tempDir.appendingPathComponent(".hidden.txt")
+        let normalFile = tempDir.appendingPathComponent("normal.txt")
+        
+        // Write 12MB to both so they don't get aggregated
+        let dummyData = Data(repeating: 0, count: 12 * 1024 * 1024)
+        try dummyData.write(to: hiddenFile)
+        try dummyData.write(to: normalFile)
+        
+        let engine = ScannerEngine()
+        
+        // When skipHiddenFiles is true
+        let scanResult1 = try await engine.scan(at: tempDir, skipHiddenFiles: true, skipPackages: false) { _ in }
+        let children1 = try XCTUnwrap(scanResult1.rootItem.children)
+        XCTAssertTrue(children1.contains { $0.name == "normal.txt" })
+        XCTAssertFalse(children1.contains { $0.name == ".hidden.txt" })
+        
+        // When skipHiddenFiles is false
+        let scanResult2 = try await engine.scan(at: tempDir, skipHiddenFiles: false, skipPackages: false) { _ in }
+        let children2 = try XCTUnwrap(scanResult2.rootItem.children)
+        XCTAssertTrue(children2.contains { $0.name == "normal.txt" })
+        XCTAssertTrue(children2.contains { $0.name == ".hidden.txt" })
+    }
+    
+    func testPackageFlattening() async throws {
+        let fileManager = FileManager.default
+        let tempDir = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let appDir = tempDir.appendingPathComponent("TestApp.app/Contents/MacOS")
+        try fileManager.createDirectory(at: appDir, withIntermediateDirectories: true)
+        
+        defer {
+            try? fileManager.removeItem(at: tempDir)
+        }
+        
+        let execFile = appDir.appendingPathComponent("exec")
+        // Write 12MB so it is not aggregated
+        let dummyData = Data(repeating: 0, count: 12 * 1024 * 1024)
+        try dummyData.write(to: execFile)
+        
+        let engine = ScannerEngine()
+        
+        // When skipPackages is true
+        let scanResult1 = try await engine.scan(at: tempDir, skipHiddenFiles: false, skipPackages: true) { _ in }
+        let children1 = try XCTUnwrap(scanResult1.rootItem.children)
+        let appItem1 = try XCTUnwrap(children1.first { $0.name == "TestApp.app" })
+        XCTAssertFalse(appItem1.isDirectory)
+        XCTAssertTrue(appItem1.isPackage)
+        XCTAssertNil(appItem1.children)
+        XCTAssertGreaterThanOrEqual(appItem1.physicalSize, 12 * 1024 * 1024)
+        
+        // When skipPackages is false
+        let scanResult2 = try await engine.scan(at: tempDir, skipHiddenFiles: false, skipPackages: false) { _ in }
+        let children2 = try XCTUnwrap(scanResult2.rootItem.children)
+        let appItem2 = try XCTUnwrap(children2.first { $0.name == "TestApp.app" })
+        XCTAssertTrue(appItem2.isDirectory)
+        XCTAssertTrue(appItem2.isPackage)
+        XCTAssertNotNil(appItem2.children)
     }
 }
