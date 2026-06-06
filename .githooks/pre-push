@@ -14,7 +14,7 @@ TEST_COMMAND="mise exec -- tuist test"
 # to save developer time on feature branches.
 if [ "$CURRENT_BRANCH" = "main" ]; then
     echo "Pushing to main branch. Disabling Tuist cache..."
-    TEST_COMMAND="mise exec -- tuist test --no-cache"
+    TEST_COMMAND="mise exec -- tuist test --no-binary-cache"
 fi
 
 echo "Running $TEST_COMMAND..."
