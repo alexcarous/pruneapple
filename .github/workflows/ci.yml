@@ -16,6 +16,9 @@ jobs:
       - name: Install mise
         uses: jdx/mise-action@v2
 
+      - name: Install swiftlint
+        run: brew install swiftlint
+
       - name: Setup
         run: make setup
 
