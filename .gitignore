@@ -3,6 +3,7 @@
 .env
 .env.local
 .env.*.local
+/temp
 
 # Build folders
 build/
