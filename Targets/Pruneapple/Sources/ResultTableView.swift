@@ -43,6 +43,7 @@ struct ResultTableView: View {
     enum DisplayMode {
         case outline
         case sunburst
+        case smartPrune
     }
     
     private let byteFormatter: ByteCountFormatter = {
@@ -62,6 +63,7 @@ struct ResultTableView: View {
                 Picker(String(localized: "Display"), selection: $displayMode) {
                     Image(systemName: "list.bullet").tag(DisplayMode.outline)
                     Image(systemName: "chart.pie").tag(DisplayMode.sunburst)
+                    Image(systemName: "sparkles").tag(DisplayMode.smartPrune)
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
@@ -200,9 +202,11 @@ struct ResultTableView: View {
                         QuickLookController.shared.showPreview(url: item.url)
                     }
                 }
-            } else {
+            } else if displayMode == .sunburst {
                 DiskMapView(rootItem: rootItem)
                     .padding(Metrics.paddingExtraLarge)
+            } else {
+                SmartPruneView(rootItem: rootItem)
             }
         }
     }

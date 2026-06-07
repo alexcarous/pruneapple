@@ -10,7 +10,7 @@ This is a software project being built using the Gemini CLI.
 - Be sure to do regular sanity checks to make sure the code reflect what an end user would expect.
 - Use plan mode prior to every significant change. Before actually initiating major changes, the user must type "GO" to confirm your plan.
 - If linked to a Github repo, push and commit every significant change to Github.
-- When I ask you question on how to improve the app or improve the plan, you must give me EXHAUSTIVE, UN-FILTERED brain dumps of every edge case at once. You MUST NOT drip-feed them as conversational "Oh, by the way" thoughts.
+- When I ask you question on how to improve the app or improve the plan, you must give me EXHAUSTIVE, UN-FILTERED brain dumps of every edge case at once. You MUST NOT drip-feed them as conversational "Oh, by the way" thoughts. HOWEVER, you must also ABSOLUTELY avoid suggesting ideas that result in over-engineering or violating KISS.
 
 
 ## Core Directives

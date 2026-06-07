@@ -14,6 +14,8 @@ public final class DiskAnalyzer {
     public var selectedURL: URL?
     public var errorMessage: String?
     public var skippedURLs: [URL] = []
+    public var isAnalyzingAI: Bool = false
+    public var aiInsights: [URL: SmartPruneAnalysis] = [:]
     
     private let engine = ScannerEngine()
     private let logger = Logger(subsystem: "us.caro.alex.Pruneapple", category: "Scanner")
@@ -69,6 +71,15 @@ public final class DiskAnalyzer {
                     .alignment,
                     performanceTime: .default
                 )
+                
+                // Trigger Smart Prune AI analysis
+                let flatFiles = self.flatten(node: result.rootItem)
+                self.isAnalyzingAI = true
+                self.aiInsights = [:]
+                let insights = await AIEngine.shared.analyze(files: flatFiles)
+                guard !Task.isCancelled else { return }
+                self.aiInsights = insights
+                self.isAnalyzingAI = false
             } catch is CancellationError {
                 self.logger.info("Scan cancelled.")
             } catch {
@@ -84,6 +95,8 @@ public final class DiskAnalyzer {
         scanTask?.cancel()
         scanTask = nil
         isScanning = false
+        isAnalyzingAI = false
+        aiInsights = [:]
         rootItem = nil
     }
     
@@ -91,9 +104,21 @@ public final class DiskAnalyzer {
         scanTask?.cancel()
         scanTask = nil
         isScanning = false
+        isAnalyzingAI = false
+        aiInsights = [:]
         rootItem = nil
         selectedURL = nil
         errorMessage = nil
         skippedURLs = []
+    }
+    
+    private func flatten(node: FileItem) -> [FileItem] {
+        var result: [FileItem] = [node]
+        if let children = node.children {
+            for child in children {
+                result.append(contentsOf: flatten(node: child))
+            }
+        }
+        return result
     }
 }
