@@ -31,6 +31,11 @@ struct PruneappleApp: App {
                         openWindow(id: "thankYou")
                     }
                 }
+                .alert(String(localized: "Update Failed"), isPresented: $updateManager.showUpdateErrorAlert) {
+                    Button(String(localized: "OK"), role: .cancel) {}
+                } message: {
+                    Text(String(localized: "The update download has failed. The update service may be currently down or inaccessible. We recommend visiting https://alex.caro.us to manually download the latest version of Pruneapple."))
+                }
         }
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unifiedCompact)
