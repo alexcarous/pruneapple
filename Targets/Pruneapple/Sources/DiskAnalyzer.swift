@@ -65,7 +65,13 @@ public final class DiskAnalyzer {
                 // Track successful scan count for donation prompt
                 let key = AppStorageKeys.successfulScanCount.rawValue
                 let count = UserDefaults.standard.integer(forKey: key)
-                UserDefaults.standard.set(count + 1, forKey: key)
+                let newCount = count + 1
+                UserDefaults.standard.set(newCount, forKey: key)
+                
+                // Re-enable the banner every 3 scans
+                if newCount % 3 == 0 {
+                    UserDefaults.standard.set(false, forKey: AppStorageKeys.hasDismissedDonationBanner.rawValue)
+                }
                 
                 // Trigger physical trackpad feedback on completion
                 NSHapticFeedbackManager.defaultPerformer.perform(
