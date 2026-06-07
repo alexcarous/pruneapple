@@ -19,7 +19,7 @@ struct DonationView: View {
             name: String(localized: "Buy me a coffee"),
             price: "$5",
             description: String(localized: "Fuel active development and support minor releases."),
-            url: "https://buy.stripe.com/3cs3fXaST6uy9MI006",
+            url: "https://buy.stripe.com/3cs3fXaST6uy9MI006?utm_source=pruneapple&utm_medium=app&utm_campaign=donation&utm_content=coffee",
             icon: "coffee-donation",
             gradientColors: [Color.brown, Color.orange]
         ),
@@ -28,7 +28,7 @@ struct DonationView: View {
             name: String(localized: "Buy me a matcha"),
             price: "$10",
             description: String(localized: "Keep the codebase optimized and the servers running."),
-            url: "https://donate.stripe.com/bJeaEY5Fe5Nw6LHdC9bV607",
+            url: "https://donate.stripe.com/bJeaEY5Fe5Nw6LHdC9bV607?utm_source=pruneapple&utm_medium=app&utm_campaign=donation&utm_content=matcha",
             icon: "matcha-donation",
             gradientColors: [Color.green, Color.mint]
         ),
@@ -37,7 +37,7 @@ struct DonationView: View {
             name: String(localized: "Buy me a moka pot"),
             price: "$50",
             description: String(localized: "A substantial contribution to unlock major future updates."),
-            url: "https://buy.stripe.com/4gMcN61oYa3M8TPgOlbV608",
+            url: "https://buy.stripe.com/4gMcN61oYa3M8TPgOlbV608?utm_source=pruneapple&utm_medium=app&utm_campaign=donation&utm_content=mokapot",
             icon: "mokapot-donation",
             gradientColors: [Color.red, Color.orange]
         ),
@@ -46,7 +46,7 @@ struct DonationView: View {
             name: String(localized: "Espresso Machine"),
             price: String(localized: "Custom"),
             description: String(localized: "Choose your own level of support for Pruneapple."),
-            url: "https://donate.stripe.com/cNi5kE9Vu4Js8TPgOlbV609",
+            url: "https://donate.stripe.com/cNi5kE9Vu4Js8TPgOlbV609?utm_source=pruneapple&utm_medium=app&utm_campaign=donation&utm_content=espresso",
             icon: "espresso-donation",
             gradientColors: [Color.purple, Color.indigo]
         )
