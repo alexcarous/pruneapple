@@ -2,11 +2,25 @@ import Foundation
 import Sparkle
 import SwiftUI
 
-public final class UpdateManager: ObservableObject {
-    public let updaterController: SPUStandardUpdaterController
+public final class UpdateManager: NSObject, ObservableObject, SPUUpdaterDelegate {
+    public var updaterController: SPUStandardUpdaterController!
+    @Published public var showUpdateErrorAlert = false
     
-    public init() {
-        self.updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+    public override init() {
+        super.init()
+        self.updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: self, userDriverDelegate: nil)
+    }
+    
+    public func updater(_ updater: SPUUpdater, didAbortWithError error: Error) {
+        let nsError = error as NSError
+        // Ignore user cancellation errors (4001: Sparkle user cancel, 3072: Cocoa user cancel)
+        if nsError.code == 4001 || nsError.code == 3072 {
+            return
+        }
+        
+        DispatchQueue.main.async {
+            self.showUpdateErrorAlert = true
+        }
     }
 }
 
