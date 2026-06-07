@@ -35,7 +35,7 @@ struct ResultTableView: View {
     
     @State private var displayItem: FileItem
     @State private var sortOrder = [KeyPathComparator(\FileItem.physicalSize, order: .reverse)]
-    @State private var selectedItem: FileItem.ID? = nil
+    @State private var selectedItem: FileItem.ID?
     @State private var showInfoPopover = false
     
     @State private var displayMode: DisplayMode = .outline

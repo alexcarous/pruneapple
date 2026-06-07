@@ -18,7 +18,7 @@ struct DiskMapView: View {
             let maxRadius = min(size.width, size.height) / 2 * Metrics.diskMapMaxRadiusRatio
             
             ZStack {
-                Canvas { context, size in
+                Canvas { context, _ in
                     drawNode(item: rootItem, context: &context, center: center, radius: maxRadius, startAngle: .zero, endAngle: .degrees(360), depth: 0)
                 }
                 .onContinuousHover { phase in
@@ -89,10 +89,10 @@ struct DiskMapView: View {
         if depth > Metrics.diskMapMaxDepth { return }
         
         let range = radiusRange(for: depth, maxRadius: radius)
-        let path = Path { p in
-            p.addArc(center: center, radius: range.upperBound, startAngle: startAngle, endAngle: endAngle, clockwise: false)
-            p.addArc(center: center, radius: range.lowerBound, startAngle: endAngle, endAngle: startAngle, clockwise: true)
-            p.closeSubpath()
+        let path = Path { pathBuilder in
+            pathBuilder.addArc(center: center, radius: range.upperBound, startAngle: startAngle, endAngle: endAngle, clockwise: false)
+            pathBuilder.addArc(center: center, radius: range.lowerBound, startAngle: endAngle, endAngle: startAngle, clockwise: true)
+            pathBuilder.closeSubpath()
         }
         
         let isHovered = hoveredPath.contains(where: { $0.id == item.id })
@@ -129,24 +129,24 @@ struct DiskMapView: View {
     }
     
     private func hitTest(location: CGPoint, center: CGPoint, radius: CGFloat) -> [FileItem] {
-        let dx = location.x - center.x
-        let dy = location.y - center.y
-        let r = sqrt(dx * dx + dy * dy)
+        let deltaX = location.x - center.x
+        let deltaY = location.y - center.y
+        let distance = sqrt(deltaX * deltaX + deltaY * deltaY)
         
-        var angle = atan2(dy, dx)
+        var angle = atan2(deltaY, deltaX)
         if angle < 0 { angle += 2 * .pi }
         
         var result: [FileItem] = []
-        hitTestNode(item: rootItem, r: r, angle: angle, startAngle: 0, endAngle: 2 * .pi, depth: 0, maxRadius: radius, result: &result)
+        hitTestNode(item: rootItem, distance: distance, angle: angle, startAngle: 0, endAngle: 2 * .pi, depth: 0, maxRadius: radius, result: &result)
         return result
     }
     
-    private func hitTestNode(item: FileItem, r: CGFloat, angle: CGFloat, startAngle: CGFloat, endAngle: CGFloat, depth: Int, maxRadius: CGFloat, result: inout [FileItem]) {
+    private func hitTestNode(item: FileItem, distance: CGFloat, angle: CGFloat, startAngle: CGFloat, endAngle: CGFloat, depth: Int, maxRadius: CGFloat, result: inout [FileItem]) {
         if depth > Metrics.diskMapMaxDepth { return }
         
         let range = radiusRange(for: depth, maxRadius: maxRadius)
         
-        if r >= range.lowerBound && r <= range.upperBound {
+        if distance >= range.lowerBound && distance <= range.upperBound {
             result.append(item)
             return
         }
