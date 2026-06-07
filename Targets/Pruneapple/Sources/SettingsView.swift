@@ -261,6 +261,7 @@ struct AdvancedTab: View {
                     Picker(String(localized: "App Icon"), selection: $selectedAppIcon) {
                         Text(String(localized: "Default (Red/Orange)")).tag("default")
                         Text(String(localized: "Supporter (Neon Glow)")).tag("neon")
+                        Text(String(localized: "Supporter (Gold/Titanium)")).tag("gold")
                     }
                     .pickerStyle(.radioGroup)
                     .help(String(localized: "Choose a custom icon for the Dock and application menu."))
