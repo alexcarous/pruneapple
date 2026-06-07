@@ -10,7 +10,25 @@ public struct FileItem: Identifiable, Sendable, Hashable {
     public let isDatalessCloudItem: Bool
     public var children: [FileItem]?
     
-    public init(url: URL, isDirectory: Bool, isPackage: Bool = false, physicalSize: Int64, isDatalessCloudItem: Bool = false, children: [FileItem]? = nil) {
+    public let isVirtual: Bool
+    public let isUbiquitousItem: Bool
+    public let creationDate: Date?
+    public let lastModifiedDate: Date?
+    public let lastAccessedDate: Date?
+    
+    public init(
+        url: URL,
+        isDirectory: Bool,
+        isPackage: Bool = false,
+        physicalSize: Int64,
+        isDatalessCloudItem: Bool = false,
+        children: [FileItem]? = nil,
+        isVirtual: Bool = false,
+        isUbiquitousItem: Bool = false,
+        creationDate: Date? = nil,
+        lastModifiedDate: Date? = nil,
+        lastAccessedDate: Date? = nil
+    ) {
         self.id = url.standardizedFileURL.hashValue
         self.url = url
         self.name = url.lastPathComponent
@@ -19,6 +37,11 @@ public struct FileItem: Identifiable, Sendable, Hashable {
         self.physicalSize = physicalSize
         self.isDatalessCloudItem = isDatalessCloudItem
         self.children = children
+        self.isVirtual = isVirtual
+        self.isUbiquitousItem = isUbiquitousItem
+        self.creationDate = creationDate
+        self.lastModifiedDate = lastModifiedDate
+        self.lastAccessedDate = lastAccessedDate
     }
 }
 
@@ -93,7 +116,13 @@ private final class DirectoryNode {
             
             if remainingSize > 0 {
                 let otherURL = url.appendingPathComponent("Other Smaller Files")
-                let otherItem = FileItem(url: otherURL, isDirectory: false, isPackage: false, physicalSize: remainingSize)
+                let otherItem = FileItem(
+                    url: otherURL,
+                    isDirectory: false,
+                    isPackage: false,
+                    physicalSize: remainingSize,
+                    isVirtual: true
+                )
                 finalFiles = top + [otherItem]
             } else {
                 finalFiles = top
@@ -161,7 +190,10 @@ public actor ScannerEngine {
             .nameKey,
             .isUbiquitousItemKey,
             .ubiquitousItemDownloadingStatusKey,
-            .volumeUUIDStringKey
+            .volumeUUIDStringKey,
+            .creationDateKey,
+            .contentModificationDateKey,
+            .contentAccessDateKey
         ]
         
         let detachedTask = Task.detached(priority: .userInitiated) { () -> ScanResult in
@@ -257,6 +289,10 @@ public actor ScannerEngine {
                     let downloadStatus = resourceValues.ubiquitousItemDownloadingStatus
                     let isDataless = isUbiquitous && downloadStatus == .notDownloaded
                     
+                    let creationDate = resourceValues.creationDate
+                    let lastModifiedDate = resourceValues.contentModificationDate
+                    let lastAccessedDate = resourceValues.contentAccessDate
+                    
                     if isDirectory {
                         // If skipPackages is true and this is a package, treat it as a flattened file
                         if skipPackages && isPackage {
@@ -280,7 +316,19 @@ public actor ScannerEngine {
                             
                             let immediateParent = url.deletingLastPathComponent()
                             if let parentNode = dirNodes[immediateParent] {
-                                let fileItem = FileItem(url: url, isDirectory: false, isPackage: true, physicalSize: packageSize)
+                                let fileItem = FileItem(
+                                    url: url,
+                                    isDirectory: false,
+                                    isPackage: true,
+                                    physicalSize: packageSize,
+                                    isDatalessCloudItem: false,
+                                    children: nil,
+                                    isVirtual: false,
+                                    isUbiquitousItem: isUbiquitous,
+                                    creationDate: creationDate,
+                                    lastModifiedDate: lastModifiedDate,
+                                    lastAccessedDate: lastAccessedDate
+                                )
                                 parentNode.addFile(fileItem)
                             }
                             return
@@ -332,7 +380,19 @@ public actor ScannerEngine {
                                 if let parentNode = dirNodes[immediateParent] {
                                     // Files smaller than 10MB are aggregated to avoid memory footprint bloat
                                     if physicalSize >= 10 * 1024 * 1024 || isDataless {
-                                        let fileItem = FileItem(url: url, isDirectory: false, isPackage: isPackage, physicalSize: physicalSize, isDatalessCloudItem: isDataless)
+                                        let fileItem = FileItem(
+                                            url: url,
+                                            isDirectory: false,
+                                            isPackage: isPackage,
+                                            physicalSize: physicalSize,
+                                            isDatalessCloudItem: isDataless,
+                                            children: nil,
+                                            isVirtual: false,
+                                            isUbiquitousItem: isUbiquitous,
+                                            creationDate: creationDate,
+                                            lastModifiedDate: lastModifiedDate,
+                                            lastAccessedDate: lastAccessedDate
+                                        )
                                         parentNode.addFile(fileItem)
                                     } else {
                                         parentNode.smallerFilesSize += physicalSize
