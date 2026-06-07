@@ -83,7 +83,7 @@ struct ResultTableView: View {
                             .font(.headline)
                         Text(String(localized: "Pruneapple measures the actual physical sectors allocated on disk by APFS. This accounts for:"))
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                         
                         VStack(alignment: .leading, spacing: Metrics.spacingSmall) {
                             Label(String(localized: "Sparse Files: files that take less space than their logical size."), systemImage: "doc.text.fill")
@@ -91,7 +91,7 @@ struct ResultTableView: View {
                             Label(String(localized: "Compression: system-compressed files."), systemImage: "arrow.down.forward.and.arrow.up.backward")
                         }
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     }
                     .padding()
                     .frame(width: Metrics.infoPopoverWidth)
@@ -114,10 +114,10 @@ struct ResultTableView: View {
             if !diskAnalyzer.skippedURLs.isEmpty {
                 HStack(spacing: Metrics.spacingStandard) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
+                        .foregroundStyle(.orange)
                     Text(String(localized: "Some folders were skipped due to permission errors. If you just granted access, please restart Pruneapple."))
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     
                     Spacer()
                     
@@ -134,7 +134,7 @@ struct ResultTableView: View {
                         diskAnalyzer.skippedURLs = []
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
                 }
@@ -151,7 +151,7 @@ struct ResultTableView: View {
                         HStack(spacing: Metrics.spacingSmall) {
                             if item.isDatalessCloudItem {
                                 Image(systemName: "icloud.and.arrow.down")
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(.secondary)
                             }
                             Image(nsImage: NSWorkspace.shared.icon(forFile: item.url.path))
                                 .resizable()
@@ -163,7 +163,7 @@ struct ResultTableView: View {
                     }
                     TableColumn(String(localized: "Size"), value: \.physicalSize) { item in
                         Text(byteFormatter.string(fromByteCount: item.physicalSize))
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .monospacedDigit()
                     }
                     .width(min: Metrics.tableSizeColumnMin, ideal: Metrics.tableSizeColumnIdeal, max: Metrics.tableSizeColumnMax)
@@ -174,7 +174,7 @@ struct ResultTableView: View {
                                 revealInFinder(item.url)
                             }) {
                                 Image(systemName: "magnifyingglass")
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(.secondary)
                             }
                             .buttonStyle(.plain)
                             .help(String(localized: "Reveal in Finder"))
@@ -182,6 +182,7 @@ struct ResultTableView: View {
                     }
                     .width(Metrics.tableActionColumnWidth)
                 }
+                .scrollContentBackground(.hidden)
                 .onChange(of: sortOrder) {
                     displayItem.sort(using: sortOrder)
                 }

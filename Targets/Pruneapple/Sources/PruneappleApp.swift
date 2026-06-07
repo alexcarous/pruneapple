@@ -19,6 +19,7 @@ struct PruneappleApp: App {
             MainView()
                 .environment(diskAnalyzer)
                 .frame(minWidth: Metrics.minWindowWidth, minHeight: Metrics.minWindowHeight)
+                .ignoresSafeArea(.container, edges: .top)
                 .onOpenURL { url in
                     if url.scheme == "pruneapple" && url.host == "donate-success" {
                         NSApp.activate(ignoringOtherApps: true)
@@ -27,6 +28,7 @@ struct PruneappleApp: App {
                 }
         }
         .windowStyle(.hiddenTitleBar)
+        .windowToolbarStyle(.unifiedCompact)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button(String(localized: "New Scan")) {
@@ -89,20 +91,37 @@ struct PruneappleApp: App {
 
 struct MainView: View {
     @Environment(DiskAnalyzer.self) private var diskAnalyzer
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @State private var dragOver = false
     
     var body: some View {
-        VStack(spacing: Metrics.spacingNone) {
-            // Drag-and-Drop overlay if dragging
-            if diskAnalyzer.isScanning {
-                ScanningProgressView()
-            } else if let rootItem = diskAnalyzer.rootItem {
-                ResultTableView(rootItem: rootItem)
-                    .transition(.opacity)
-            } else {
-                WelcomeView(dragOver: $dragOver)
+        ZStack {
+            if !reduceTransparency {
+                LinearGradient(
+                    colors: [
+                        Color.accentColor.opacity(0.04),
+                        Color.purple.opacity(0.02),
+                        Color.clear
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
             }
+            
+            VStack(spacing: Metrics.spacingNone) {
+                if diskAnalyzer.isScanning {
+                    ScanningProgressView()
+                } else if let rootItem = diskAnalyzer.rootItem {
+                    ResultTableView(rootItem: rootItem)
+                        .transition(.opacity)
+                } else {
+                    WelcomeView(dragOver: $dragOver)
+                }
+            }
+            .padding(.top, 28) // Avoid window traffic lights
         }
+        .applyRootGlassEffect(reduceTransparency: reduceTransparency)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .dropDestination(for: URL.self) { items, _ in
             guard let firstURL = items.first else { return false }
             diskAnalyzer.startScan(at: firstURL)
@@ -147,7 +166,7 @@ struct ThankYouView: View {
                 
                 Image(systemName: "heart.fill")
                     .font(.system(size: 36))
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .scaleEffect(animatePopper ? 1.15 : 0.85)
                     .animation(
                         .spring(response: 0.4, dampingFraction: 0.3)
@@ -167,7 +186,7 @@ struct ThankYouView: View {
                 
                 Text(String(localized: "Your donation directly supports the development of Pruneapple. We appreciate your generosity!"))
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Metrics.paddingExtraLarge)
             }
@@ -207,7 +226,7 @@ struct WelcomeView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: Metrics.iconHuge, height: Metrics.iconHuge)
-                    .foregroundColor(dragOver ? .accentColor : .secondary)
+                    .foregroundStyle(dragOver ? Color.accentColor : Color.secondary)
                     .scaleEffect(dragOver ? 1.1 : 1.0)
                     .animation(.spring(), value: dragOver)
                 
@@ -217,7 +236,7 @@ struct WelcomeView: View {
                 
                 Text(String(localized: "Drag and drop a folder here, or select one below to scan physical disk usage."))
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Metrics.paddingDoubleExtraLarge)
                 
@@ -249,17 +268,17 @@ struct WelcomeView: View {
                 
                 Image(systemName: "heart.fill")
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
             }
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(String(localized: "Enjoying Pruneapple?"))
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(.primary)
                 
                 Text(String(localized: "You've completed \(successfulScanCount) successful scans! Please consider supporting development."))
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             
             Spacer()
@@ -276,7 +295,7 @@ struct WelcomeView: View {
                 }
             }) {
                 Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .font(.title3)
             }
             .buttonStyle(.plain)
@@ -329,13 +348,13 @@ struct ScanningProgressView: View {
                 Text(String(localized: "Space Tallied: \(byteFormatter.string(fromByteCount: diskAnalyzer.progressBytes))"))
             }
             .font(.subheadline)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
             .monospacedDigit()
             
             if !diskAnalyzer.currentScanningPath.isEmpty {
                 Text(diskAnalyzer.currentScanningPath)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .padding(.horizontal, Metrics.paddingDoubleExtraLarge)
@@ -363,6 +382,19 @@ struct MenuBarLabel: View {
             } else {
                 Image(systemName: "internaldrive")
             }
+        }
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func applyRootGlassEffect(reduceTransparency: Bool) -> some View {
+        if reduceTransparency {
+            self.background(Color(nsColor: .windowBackgroundColor))
+        } else if #available(macOS 26.0, *) {
+            self.glassEffect()
+        } else {
+            self.background(.ultraThinMaterial)
         }
     }
 }
