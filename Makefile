@@ -2,6 +2,7 @@
 
 setup:
 	git config core.hooksPath .githooks
+	mise exec -- tuist install
 	mise exec -- tuist generate
 
 test:
