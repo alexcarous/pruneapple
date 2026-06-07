@@ -7,6 +7,11 @@ struct DonationView: View {
     @State private var eventMonitor: Any?
     @State private var testModeActive = false
     
+    @State private var isRedeemExpanded = false
+    @State private var enteredLicenseKey = ""
+    @State private var redeemStatusMessage: String?
+    @State private var redeemIsSuccess = false
+    
     struct DonationTier: Identifiable {
         let id: String
         let name: String
@@ -195,6 +200,56 @@ struct DonationView: View {
                             }
                         }
                         .padding(.horizontal, Metrics.paddingExtraLarge)
+                        
+                        Divider()
+                            .padding(.horizontal, Metrics.paddingExtraLarge)
+                        
+                        VStack(spacing: Metrics.spacingStandard) {
+                            Button(action: {
+                                withAnimation(.spring()) {
+                                    isRedeemExpanded.toggle()
+                                }
+                            }) {
+                                HStack {
+                                    Text(String(localized: "Already supported? Redeem license key..."))
+                                        .font(.subheadline)
+                                        .foregroundColor(.accentColor)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .rotationEffect(.degrees(isRedeemExpanded ? 90 : 0))
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            
+                            if isRedeemExpanded {
+                                HStack(spacing: Metrics.spacingStandard) {
+                                    TextField(
+                                        String(localized: "Enter Stripe Session ID (starts with cs_)"),
+                                        text: $enteredLicenseKey
+                                    )
+                                    .textFieldStyle(.roundedBorder)
+                                    .lineLimit(1)
+                                    .disableAutocorrection(true)
+                                    
+                                    Button(String(localized: "Redeem")) {
+                                        validateAndRedeemKey()
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .disabled(enteredLicenseKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                }
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                                
+                                if let message = redeemStatusMessage {
+                                    Text(message)
+                                        .font(.caption)
+                                        .foregroundColor(redeemIsSuccess ? .green : .red)
+                                        .transition(.opacity)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, Metrics.paddingExtraLarge)
+                        .padding(.bottom, Metrics.paddingMedium)
                     }
                     .padding(.vertical, Metrics.paddingMedium)
                 }
@@ -247,6 +302,19 @@ struct DonationView: View {
                     eventMonitor = nil
                 }
             }
+        }
+    }
+    
+    private func validateAndRedeemKey() {
+        let key = enteredLicenseKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        if key.hasPrefix("cs_") && key.count > 15 {
+            hasDonated = true
+            redeemIsSuccess = true
+            redeemStatusMessage = String(localized: "Thank you! Supporter features activated successfully.")
+            enteredLicenseKey = ""
+        } else {
+            redeemIsSuccess = false
+            redeemStatusMessage = String(localized: "Invalid Stripe Session ID. Please check your email receipt URL for your session ID (starts with cs_).")
         }
     }
 }
