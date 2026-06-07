@@ -228,8 +228,8 @@ struct InstructionRow: View {
 }
 
 struct AdvancedTab: View {
-    @AppStorage(AppStorageKeys.skipHiddenFiles.rawValue) private var skipHiddenFiles = true
-    @AppStorage(AppStorageKeys.skipPackages.rawValue) private var skipPackages = true
+    @AppStorage(AppStorageKeys.scanHiddenFiles.rawValue) private var scanHiddenFiles = false
+    @AppStorage(AppStorageKeys.scanPackages.rawValue) private var scanPackages = false
     
     var body: some View {
         Form {
@@ -241,19 +241,13 @@ struct AdvancedTab: View {
                 
                 Toggle(
                     String(localized: "Scan hidden files and folders"),
-                    isOn: Binding(
-                        get: { !skipHiddenFiles },
-                        set: { skipHiddenFiles = !$0 }
-                    )
+                    isOn: $scanHiddenFiles
                 )
                 .help(String(localized: "When enabled, Pruneapple will scan hidden items like .DS_Store, .git folders, etc."))
                 
                 Toggle(
                     String(localized: "Scan macOS package contents"),
-                    isOn: Binding(
-                        get: { !skipPackages },
-                        set: { skipPackages = !$0 }
-                    )
+                    isOn: $scanPackages
                 )
                 .help(String(localized: "When enabled, application bundles (.app) and frameworks (.framework) will be traversed as directories rather than treated as files."))
             }
