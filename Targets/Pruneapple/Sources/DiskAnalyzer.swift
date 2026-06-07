@@ -40,7 +40,7 @@ public final class DiskAnalyzer {
         scanTask = Task { [weak self] in
             guard let self = self else { return }
             do {
-                let skipHidden = UserDefaults.standard.bool(forKey: AppStorageKeys.skipHiddenFiles.rawValue)
+                let skipHidden = UserDefaults.standard.object(forKey: AppStorageKeys.skipHiddenFiles.rawValue) as? Bool ?? true
                 let skipPackages = UserDefaults.standard.object(forKey: AppStorageKeys.skipPackages.rawValue) as? Bool ?? true
                 
                 let result = try await self.engine.scan(
