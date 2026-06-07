@@ -366,5 +366,3 @@ struct MenuBarLabel: View {
         }
     }
 }
-
-

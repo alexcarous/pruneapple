@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DonationView: View {
-    @State private var hoveredTierID: String? = nil
+    @State private var hoveredTierID: String?
     
     struct DonationTier: Identifiable {
         let id: String

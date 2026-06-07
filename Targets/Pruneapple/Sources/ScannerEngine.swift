@@ -118,6 +118,7 @@ public actor ScannerEngine {
     
     public init() {}
     
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
     public func scan(
         at rootURL: URL,
         skipHiddenFiles: Bool,

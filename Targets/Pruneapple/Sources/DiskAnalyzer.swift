@@ -5,14 +5,14 @@ import os
 
 @Observable
 @MainActor
-public final class DiskAnalyzer: Sendable {
+public final class DiskAnalyzer {
     public var isScanning: Bool = false
     public var progressBytes: Int64 = 0
     public var progressFiles: Int = 0
     public var currentScanningPath: String = ""
-    public var rootItem: FileItem? = nil
-    public var selectedURL: URL? = nil
-    public var errorMessage: String? = nil
+    public var rootItem: FileItem?
+    public var selectedURL: URL?
+    public var errorMessage: String?
     public var skippedURLs: [URL] = []
     
     private let engine = ScannerEngine()
