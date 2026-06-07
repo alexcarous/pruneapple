@@ -101,3 +101,60 @@ If you want to distribute Pruneapple via Homebrew (especially helpful as a free 
     brew tap alexcarous/tap
     brew install pruneapple
     ```
+
+---
+
+## 7. alex.caro.us Domain References Checklist
+When you are ready to change the domain name from `alex.caro.us` to your new domain, make sure to update it in the following files:
+
+- [ ] **Appcast / Update Feed URL**:
+  - [Project.swift](file:///Users/appsandbox/projects/pruneapple/Project.swift#L24) (Value of `SUFeedURL` under `infoPlist` configurations)
+- [ ] **Home Help Menu Link**:
+  - [PruneappleApp.swift](file:///Users/appsandbox/projects/pruneapple/Targets/Pruneapple/Sources/PruneappleApp.swift#L49) (Help button action URL)
+- [ ] **About Tab Credits Link**:
+  - [SettingsView.swift](file:///Users/appsandbox/projects/pruneapple/Targets/Pruneapple/Sources/SettingsView.swift#L288) (Credits Link destination)
+- [ ] **Project Readme links**:
+  - [README.md](file:///Users/appsandbox/projects/pruneapple/README.md#L3) (Badge Link)
+  - [README.md](file:///Users/appsandbox/projects/pruneapple/README.md#L21) (Download URL)
+- [ ] **Local Launch Checklists / Configurations in this file**:
+  - [DEV_TODO.md](file:///Users/appsandbox/projects/pruneapple/DEV_TODO.md#L14) (Stripe Redirect URL)
+  - [DEV_TODO.md](file:///Users/appsandbox/projects/pruneapple/DEV_TODO.md#L21) (Web Landing Page Setup)
+  - [DEV_TODO.md](file:///Users/appsandbox/projects/pruneapple/DEV_TODO.md#L50) (Gatekeeper bypass instructions URL)
+  - [DEV_TODO.md](file:///Users/appsandbox/projects/pruneapple/DEV_TODO.md#L83) (Homebrew Cask homepage URL)
+
+---
+
+## 8. Compiled App Storage & Upload Locations
+Ensure the compiled app (`Pruneapple.app` inside `Pruneapple.zip`) is uploaded to these locations during distribution:
+
+- [ ] **GitHub Releases** (For Homebrew Cask download):
+  - **Upload to**: `https://github.com/alexcarous/pruneapple/releases`
+  - **Expected URL**: `https://github.com/alexcarous/pruneapple/releases/download/v{version}/Pruneapple.zip` (must match the version and name defined in the Homebrew cask).
+- [ ] **Sparkle Update Server** (For in-app update updates):
+  - **Upload to**: Your web server root under `pruneapple/` directory (e.g., `https://alex.caro.us/pruneapple/`).
+  - **Files required**:
+    - `Pruneapple.zip` (The signed update archive).
+    - `appcast.xml` (The Sparkle appcast feed referencing the zip, size, version, and signature).
+- [ ] **Website Landing Page / Stripe Success Redirect**:
+  - **Upload to**: `https://alex.caro.us/thank-you`
+  - **Purpose**: Let users trigger the custom `pruneapple://` deep link to activate the donor badge/status once payment succeeds.
+
+---
+
+## 9. Visual Redesign: Pineapple Disk Breakdown Chart
+To make the app breakdown look like a **pineapple** instead of a regular concentric circle sunburst chart, follow these steps in [DiskMapView.swift](file:///Users/appsandbox/projects/pruneapple/Targets/Pruneapple/Sources/DiskMapView.swift):
+
+- [ ] **Ovoid / Pineapple Body Shaping**:
+  - Modify `radiusRange(for:depth:maxRadius:)` to shape the rings parametrically.
+  - Scale the radius based on the angular direction `(startAngle + endAngle) / 2`. Scale the vertical radius factor (e.g., height/width ratio of `1.3` to `1.4`) to make it oval, and optionally make the lower half slightly wider.
+- [ ] **Leafy Green Crown Overlay**:
+  - Draw a green leafy crown at the top (around -90° / 270°).
+  - Use a `Path` with Bezier curves (`addCurve` / `addQuadCurve`) representing overlapping leaves.
+  - Fill it with a green gradient (e.g., green to forest-green) to sit neatly at the top of the body.
+- [ ] **Pineapple Skin Texture & Colors**:
+  - Instead of standard random gradients, use a warm tropical palette for the data wedges: yellows, gold, amber, and orange.
+  - Draw the segments with a slight spacing (stroke/gap) and rounded wedge corners to look like the diamond segments of a pineapple.
+- [ ] **Core / Center Circle**:
+  - Make the central circle (depth 0 representing the root folder) a soft yellow color to symbolize the pineapple's core.
+
+
