@@ -59,9 +59,19 @@ public class AIEngine {
             #if canImport(FoundationModels)
             if #available(macOS 26.0, *) {
                 do {
-                    let paths = candidateFiles.map { $0.url.path }.joined(separator: "\n")
+                    let paths = candidateFiles.map { item -> String in
+                        let sizeMB = item.physicalSize / 1_000_000
+                        let created = item.creationDate?.formatted(date: .abbreviated, time: .omitted) ?? "Unknown"
+                        let accessed = item.lastAccessedDate?.formatted(date: .abbreviated, time: .omitted) ?? "Unknown"
+                        let cloud = item.isUbiquitousItem ? "Yes" : "No"
+                        let dataless = item.isDatalessCloudItem ? "Yes (0 local bytes)" : "No"
+                        
+                        return "- \(item.url.path) | Size: \(sizeMB)MB | Created: \(created) | Accessed: \(accessed) | iCloud: \(cloud) | Dataless: \(dataless)"
+                    }.joined(separator: "\n")
+                    
                     let prompt = """
                     You are a macOS disk cleanup detective. You strictly do read-only analysis. Analyze these files and assign a Pruneability Score (0.0 to 1.0) and a 1-sentence reason.
+                    Weigh the 'Accessed' date heavily. If 'Dataless' is Yes, give a pruneability score of 0.0 because deleting it frees no local space. If 'iCloud' is Yes, lower the score slightly as deletion is permanent across all devices.
                     
                     Files:
                     \(paths)
@@ -96,7 +106,7 @@ public class AIEngine {
     
     internal func filterCandidates(files: [FileItem]) -> [FileItem] {
         return Array(files
-            .filter { !$0.isDirectory && $0.physicalSize >= 50_000_000 }
+            .filter { !$0.isDirectory && !$0.isPackage && !$0.isVirtual && $0.physicalSize >= 50_000_000 }
             .sorted { $0.physicalSize > $1.physicalSize }
             .prefix(15))
     }

@@ -13,12 +13,15 @@ final class AIEngineTests: XCTestCase {
         let bigFile1 = FileItem(url: rootURL.appendingPathComponent("big1.dmg"), isDirectory: false, physicalSize: 100_000_000) // 100MB
         let bigFile2 = FileItem(url: rootURL.appendingPathComponent("big2.zip"), isDirectory: false, physicalSize: 200_000_000) // 200MB
         let directory = FileItem(url: rootURL.appendingPathComponent("folder"), isDirectory: true, physicalSize: 500_000_000) // 500MB
+        let packageFile = FileItem(url: rootURL.appendingPathComponent("App.app"), isDirectory: false, isPackage: true, physicalSize: 150_000_000) // 150MB package
+        let virtualFile = FileItem(url: rootURL.appendingPathComponent("Other Smaller Files"), isDirectory: false, isPackage: false, physicalSize: 120_000_000, isVirtual: true) // 120MB virtual node
         
-        let files = [smallFile, bigFile1, bigFile2, directory]
+        let files = [smallFile, bigFile1, bigFile2, directory, packageFile, virtualFile]
         
         let candidates = AIEngine.shared.filterCandidates(files: files)
         
         // We expect only bigFile1 and bigFile2 to be candidates, sorted by size (big2 then big1)
+        // packageFile and virtualFile should be excluded
         XCTAssertEqual(candidates.count, 2)
         XCTAssertEqual(candidates[0].url, bigFile2.url)
         XCTAssertEqual(candidates[1].url, bigFile1.url)

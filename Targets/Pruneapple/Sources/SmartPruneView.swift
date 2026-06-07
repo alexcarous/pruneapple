@@ -130,6 +130,14 @@ struct SmartPruneRow: View {
     
     @State private var isHovered = false
     
+    private var isVirtual: Bool {
+        item?.isVirtual ?? (url.lastPathComponent == "Other Smaller Files")
+    }
+    
+    private var isDataless: Bool {
+        item?.isDatalessCloudItem ?? false
+    }
+    
     var body: some View {
         HStack(alignment: .top, spacing: Metrics.spacingLarge) {
             // Icon
@@ -184,35 +192,39 @@ struct SmartPruneRow: View {
         )
         .padding(.horizontal)
         .overlay(alignment: .trailing) {
-            HStack(spacing: Metrics.spacingSmall) {
-                Button(action: quickLook) {
-                    Image(systemName: "eye.fill")
-                        .font(.body.bold())
-                        .foregroundStyle(.secondary)
-                        .frame(width: 28, height: 28)
-                        .background(Color(NSColor.windowBackgroundColor))
-                        .clipShape(Circle())
-                        .shadow(color: Color.black.opacity(0.15), radius: 3)
+            if !isVirtual {
+                HStack(spacing: Metrics.spacingSmall) {
+                    if !isDataless {
+                        Button(action: quickLook) {
+                            Image(systemName: "eye.fill")
+                                .font(.body.bold())
+                                .foregroundStyle(.secondary)
+                                .frame(width: 28, height: 28)
+                                .background(Color(NSColor.windowBackgroundColor))
+                                .clipShape(Circle())
+                                .shadow(color: Color.black.opacity(0.15), radius: 3)
+                        }
+                        .buttonStyle(.plain)
+                        .help(String(localized: "Quick Look"))
+                    }
+                    
+                    Button(action: revealInFinder) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.body.bold())
+                            .foregroundStyle(.secondary)
+                            .frame(width: 28, height: 28)
+                            .background(Color(NSColor.windowBackgroundColor))
+                            .clipShape(Circle())
+                            .shadow(color: Color.black.opacity(0.15), radius: 3)
+                    }
+                    .buttonStyle(.plain)
+                    .help(String(localized: "Reveal in Finder"))
                 }
-                .buttonStyle(.plain)
-                .help(String(localized: "Quick Look"))
-                
-                Button(action: revealInFinder) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.body.bold())
-                        .foregroundStyle(.secondary)
-                        .frame(width: 28, height: 28)
-                        .background(Color(NSColor.windowBackgroundColor))
-                        .clipShape(Circle())
-                        .shadow(color: Color.black.opacity(0.15), radius: 3)
-                }
-                .buttonStyle(.plain)
-                .help(String(localized: "Reveal in Finder"))
+                .padding(.trailing, 80) // Offset from Score Badge
+                .opacity(isHovered ? 1 : 0)
+                .scaleEffect(isHovered ? 1.0 : 0.95)
+                .allowsHitTesting(isHovered)
             }
-            .padding(.trailing, 80) // Offset from Score Badge
-            .opacity(isHovered ? 1 : 0)
-            .scaleEffect(isHovered ? 1.0 : 0.95)
-            .allowsHitTesting(isHovered)
         }
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.15)) {
@@ -220,11 +232,15 @@ struct SmartPruneRow: View {
             }
         }
         .contextMenu {
-            Button(String(localized: "Reveal in Finder")) {
-                revealInFinder()
-            }
-            Button(String(localized: "Quick Look")) {
-                quickLook()
+            if !isVirtual {
+                Button(String(localized: "Reveal in Finder")) {
+                    revealInFinder()
+                }
+                if !isDataless {
+                    Button(String(localized: "Quick Look")) {
+                        quickLook()
+                    }
+                }
             }
         }
     }
