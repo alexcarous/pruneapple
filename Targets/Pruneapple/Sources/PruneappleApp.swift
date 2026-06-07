@@ -228,7 +228,6 @@ struct WelcomeView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: Metrics.iconHuge, height: Metrics.iconHuge)
-                    .foregroundStyle(dragOver ? Color.accentColor : Color.secondary)
                     .scaleEffect(dragOver ? 1.1 : 1.0)
                     .animation(.spring(), value: dragOver)
                 
