@@ -27,6 +27,8 @@ struct PruneappleApp: App {
         DispatchQueue.main.async {
             if iconName == "neon" {
                 NSApp.applicationIconImage = NSImage(named: "AppIconNeon")
+            } else if iconName == "gold" {
+                NSApp.applicationIconImage = NSImage(named: "AppIconGold")
             } else {
                 NSApp.applicationIconImage = nil
             }
