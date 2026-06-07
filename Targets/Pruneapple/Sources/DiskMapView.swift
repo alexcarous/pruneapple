@@ -180,6 +180,7 @@ struct DiskMapView: View {
 
 struct TooltipBackgroundModifier: ViewModifier {
     func body(content: Content) -> some View {
+        #if compiler(>=6.3)
         if #available(macOS 26.0, *) {
             content.glassEffect(.regular, in: .rect(cornerRadius: Metrics.cornerRadiusMedium))
         } else {
@@ -187,5 +188,10 @@ struct TooltipBackgroundModifier: ViewModifier {
                 .background(.regularMaterial)
                 .cornerRadius(Metrics.cornerRadiusMedium)
         }
+        #else
+        content
+            .background(.regularMaterial)
+            .cornerRadius(Metrics.cornerRadiusMedium)
+        #endif
     }
 }
