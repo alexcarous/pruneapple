@@ -1,7 +1,11 @@
 import SwiftUI
 
 struct DonationView: View {
+    @AppStorage(AppStorageKeys.hasDonated.rawValue) private var hasDonated = false
     @State private var hoveredTierID: String?
+    @State private var pressCount = 0
+    @State private var eventMonitor: Any?
+    @State private var testModeActive = false
     
     struct DonationTier: Identifiable {
         let id: String
@@ -59,6 +63,21 @@ struct DonationView: View {
             VStack(spacing: 0) {
                 ScrollView(.vertical, showsIndicators: true) {
                     VStack(spacing: Metrics.spacingLarge) {
+                        if testModeActive {
+                            HStack {
+                                Image(systemName: "ladybug.fill")
+                                    .foregroundColor(.green)
+                                Text(String(localized: "Developer Test Mode: Supporter Features Unlocked (5 min)"))
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.green)
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 16)
+                            .background(Color.green.opacity(0.15))
+                            .cornerRadius(Metrics.cornerRadiusMedium)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+                        
                         // Header
                         VStack(spacing: Metrics.spacingVerySmall) {
                             Image(systemName: "heart.circle.fill")
@@ -192,6 +211,41 @@ struct DonationView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .padding(.vertical, Metrics.paddingMedium)
+            }
+            .onAppear {
+                eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                    if event.characters == "5" {
+                        pressCount += 1
+                        if pressCount == 5 {
+                            hasDonated = true
+                            withAnimation(.spring()) {
+                                testModeActive = true
+                            }
+                            
+                            // Start 5 minute timer
+                            Task {
+                                try? await Task.sleep(for: .seconds(300))
+                                await MainActor.run {
+                                    hasDonated = false
+                                    withAnimation(.spring()) {
+                                        testModeActive = false
+                                    }
+                                    pressCount = 0
+                                }
+                            }
+                        }
+                    } else {
+                        // Reset count if other key is pressed
+                        pressCount = 0
+                    }
+                    return event
+                }
+            }
+            .onDisappear {
+                if let monitor = eventMonitor {
+                    NSEvent.removeMonitor(monitor)
+                    eventMonitor = nil
+                }
             }
         }
     }
