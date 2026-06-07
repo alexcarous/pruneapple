@@ -52,14 +52,13 @@ struct DiskMapView: View {
                         if hoveredPath.count > 1 {
                             Text(hoveredPath.dropLast().map { $0.name == "Other Smaller Files" ? String(localized: "Other Smaller Files") : $0.name }.joined(separator: " ▸ "))
                                 .font(.caption2)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                                 .lineLimit(1)
                                 .truncationMode(.head)
                         }
                     }
                     .padding(Metrics.paddingStandard)
-                    .background(.regularMaterial)
-                    .cornerRadius(Metrics.cornerRadiusMedium)
+                    .modifier(TooltipBackgroundModifier())
                     .shadow(radius: Metrics.cornerRadiusSmall)
                     .frame(width: Metrics.diskMapTooltipWidth)
                     .position(x: center.x, y: center.y)
@@ -98,7 +97,9 @@ struct DiskMapView: View {
         let isHovered = hoveredPath.contains(where: { $0.id == item.id })
         let color = colorForDepth(depth, item: item, isHovered: isHovered)
         
-        context.fill(path, with: .color(color))
+        context.blendMode = .hardLight
+        context.fill(path, with: .color(color.opacity(0.85)))
+        context.blendMode = .normal
         context.stroke(path, with: .color(Color.primary.opacity(0.15)), lineWidth: Metrics.diskMapLineWidth)
         
         guard let children = item.children, !children.isEmpty, depth < Metrics.diskMapMaxDepth else { return }
@@ -173,6 +174,18 @@ struct DiskMapView: View {
                 }
                 currentStart += childAngle
             }
+        }
+    }
+}
+
+struct TooltipBackgroundModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            content.glassEffect(.regular, in: .rect(cornerRadius: Metrics.cornerRadiusMedium))
+        } else {
+            content
+                .background(.regularMaterial)
+                .cornerRadius(Metrics.cornerRadiusMedium)
         }
     }
 }
