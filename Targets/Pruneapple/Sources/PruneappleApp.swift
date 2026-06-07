@@ -391,10 +391,16 @@ extension View {
     func applyRootGlassEffect(reduceTransparency: Bool) -> some View {
         if reduceTransparency {
             self.background(Color(nsColor: .windowBackgroundColor))
-        } else if #available(macOS 26.0, *) {
-            self.glassEffect()
         } else {
+            #if compiler(>=6.3)
+            if #available(macOS 26.0, *) {
+                self.glassEffect()
+            } else {
+                self.background(.ultraThinMaterial)
+            }
+            #else
             self.background(.ultraThinMaterial)
+            #endif
         }
     }
 }
