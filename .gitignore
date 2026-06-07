@@ -3,7 +3,7 @@
 .env
 .env.local
 .env.*.local
-/temp
+.scratchpad/
 
 # Build folders
 build/
