@@ -33,7 +33,8 @@ let project = Project(
             ]),
             sources: ["Targets/Pruneapple/Sources/**"],
             resources: [
-                "Targets/Pruneapple/Resources/Assets.xcassets"
+                "Targets/Pruneapple/Resources/Assets.xcassets",
+                "Targets/Pruneapple/Resources/en.lproj/**"
             ],
             entitlements: "Targets/Pruneapple/Resources/Pruneapple.entitlements",
             dependencies: [

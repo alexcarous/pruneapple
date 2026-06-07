@@ -395,7 +395,7 @@ extension View {
         } else {
             #if compiler(>=6.3)
             if #available(macOS 26.0, *) {
-                self.glassEffect()
+                self.glassEffect(.regular, in: .rect)
             } else {
                 self.background(.ultraThinMaterial)
             }
