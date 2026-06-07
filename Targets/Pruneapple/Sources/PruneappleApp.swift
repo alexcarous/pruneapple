@@ -31,16 +31,6 @@ struct PruneappleApp: App {
                         openWindow(id: "thankYou")
                     }
                 }
-                .alert(String(localized: "Update Failed"), isPresented: $updateManager.showUpdateErrorAlert) {
-                    Button(String(localized: "Download Manually")) {
-                        if let url = URL(string: "https://alex.caro.us") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    }
-                    Button(String(localized: "Close"), role: .cancel) {}
-                } message: {
-                    Text(String(localized: "The update could not be downloaded or verified. The update service may be down. We recommend visiting https://alex.caro.us to manually download the latest version of Pruneapple."))
-                }
         }
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unifiedCompact)
