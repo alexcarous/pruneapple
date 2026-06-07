@@ -40,13 +40,13 @@ public final class DiskAnalyzer {
         scanTask = Task { [weak self] in
             guard let self = self else { return }
             do {
-                let skipHidden = UserDefaults.standard.object(forKey: AppStorageKeys.skipHiddenFiles.rawValue) as? Bool ?? true
-                let skipPackages = UserDefaults.standard.object(forKey: AppStorageKeys.skipPackages.rawValue) as? Bool ?? true
+                let scanHidden = UserDefaults.standard.bool(forKey: AppStorageKeys.scanHiddenFiles.rawValue)
+                let scanPackages = UserDefaults.standard.bool(forKey: AppStorageKeys.scanPackages.rawValue)
                 
                 let result = try await self.engine.scan(
                     at: url,
-                    skipHiddenFiles: skipHidden,
-                    skipPackages: skipPackages
+                    skipHiddenFiles: !scanHidden,
+                    skipPackages: !scanPackages
                 ) { progress in
                     Task { @MainActor in
                         guard !Task.isCancelled else { return }
