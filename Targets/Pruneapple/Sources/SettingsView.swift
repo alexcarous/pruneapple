@@ -228,7 +228,7 @@ struct InstructionRow: View {
 }
 
 struct AdvancedTab: View {
-    @AppStorage(AppStorageKeys.skipHiddenFiles.rawValue) private var skipHiddenFiles = false
+    @AppStorage(AppStorageKeys.skipHiddenFiles.rawValue) private var skipHiddenFiles = true
     @AppStorage(AppStorageKeys.skipPackages.rawValue) private var skipPackages = true
     
     var body: some View {
