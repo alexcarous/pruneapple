@@ -234,11 +234,28 @@ struct AdvancedTab: View {
     var body: some View {
         Form {
             Section(header: Text(String(localized: "Scan Rules")).font(.headline)) {
-                Toggle(String(localized: "Ignore hidden files and folders"), isOn: $skipHiddenFiles)
-                    .help(String(localized: "When enabled, Pruneapple will skip over system hidden items like .DS_Store, .git, etc."))
+                Text(String(localized: "By default, Pruneapple skips system hidden items and application packages to optimize performance and protect system integrity."))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, Metrics.paddingSmall)
                 
-                Toggle(String(localized: "Ignore macOS package contents"), isOn: $skipPackages)
-                    .help(String(localized: "When enabled, application bundles (.app) and frameworks (.framework) will be catalogued as simple files rather than directories."))
+                Toggle(
+                    String(localized: "Scan hidden files and folders"),
+                    isOn: Binding(
+                        get: { !skipHiddenFiles },
+                        set: { skipHiddenFiles = !$0 }
+                    )
+                )
+                .help(String(localized: "When enabled, Pruneapple will scan hidden items like .DS_Store, .git folders, etc."))
+                
+                Toggle(
+                    String(localized: "Scan macOS package contents"),
+                    isOn: Binding(
+                        get: { !skipPackages },
+                        set: { skipPackages = !$0 }
+                    )
+                )
+                .help(String(localized: "When enabled, application bundles (.app) and frameworks (.framework) will be traversed as directories rather than treated as files."))
             }
             .padding(.vertical, Metrics.paddingMedium)
             
