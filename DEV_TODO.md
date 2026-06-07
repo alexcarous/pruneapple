@@ -52,7 +52,45 @@ This document outlines the manual setup steps required to publish Pruneapple, co
   ```
 - [ ] Place the public key in your app's `Info.plist` (under `SUPublicEDKey`).
 - [ ] Host an `appcast.xml` feed at your updates URL (the `SUFeedURL` in `Info.plist`).
-- [ ] When releasing an update:
-  - [ ] Zip the compiled app.
-  - [ ] Sign it: `./generate_keys Pruneapple.zip`
-  - [ ] Update the hosted `appcast.xml` with the new version details, URL, size, and ED signature.
+- [ ] Update the hosted `appcast.xml` with the new version details, URL, size, and ED signature.
+
+---
+
+## 5. Homebrew Cask Setup (Optional)
+If you want to distribute Pruneapple via Homebrew (especially helpful as a free Gatekeeper bypass), follow these steps:
+
+- [ ] Host the compiled `Pruneapple.zip` or `.dmg` file publicly (e.g., via GitHub Releases or your server).
+- [ ] Calculate the SHA-256 checksum of the hosted archive:
+  ```bash
+  shasum -a 256 /path/to/Pruneapple.zip
+  ```
+- [ ] Create a `pruneapple.rb` cask file using the template below:
+  ```ruby
+  cask "pruneapple" do
+    version "1.0.0"
+    sha256 "REPLACE_WITH_SHA256_CHECKSUM"
+
+    url "https://github.com/alexcarous/pruneapple/releases/download/v#{version}/Pruneapple.zip"
+    name "Pruneapple"
+    desc "Beautiful Liquid Glass disk space analyzer"
+    homepage "https://alex.caro.us"
+
+    auto_updates true
+    depends_on macos: ">= :sequoia" # macOS 15.0+ (Sequoia)
+
+    app "Pruneapple.app"
+
+    zap trash: [
+      "~/Library/Application Support/us.caro.alex.Pruneapple",
+      "~/Library/Preferences/us.caro.alex.Pruneapple.plist",
+      "~/Library/Saved Application State/us.caro.alex.Pruneapple.savedState",
+    ]
+  end
+  ```
+- [ ] **Distribute the Cask**:
+  - **Path A: Official Tap (Public)**: Fork the `homebrew/homebrew-cask` repository on GitHub, add your cask file inside the `Casks/` folder, run local audits (`brew audit --cask Casks/pruneapple.rb`), and open a Pull Request.
+  - **Path B: Custom Tap (Independent)**: Create a public GitHub repository named `homebrew-tap` (under your user profile). Place your cask file inside a `Casks/` folder in that repository. Users can tap and install directly:
+    ```bash
+    brew tap alexcarous/tap
+    brew install pruneapple
+    ```
