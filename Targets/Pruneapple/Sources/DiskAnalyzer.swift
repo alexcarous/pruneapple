@@ -16,6 +16,7 @@ public final class DiskAnalyzer {
     public var skippedURLs: [URL] = []
     public var isAnalyzingAI: Bool = false
     public var aiInsights: [URL: SmartPruneAnalysis] = [:]
+    public var aiAnalysisError: String?
     
     private let engine = ScannerEngine()
     private let logger = Logger(subsystem: "us.caro.alex.Pruneapple", category: "Scanner")
@@ -76,9 +77,12 @@ public final class DiskAnalyzer {
                 let flatFiles = self.flatten(node: result.rootItem)
                 self.isAnalyzingAI = true
                 self.aiInsights = [:]
-                let insights = await AIEngine.shared.analyze(files: flatFiles)
+                self.aiAnalysisError = nil
+                
+                let (insights, error) = await AIEngine.shared.analyze(files: flatFiles)
                 guard !Task.isCancelled else { return }
                 self.aiInsights = insights
+                self.aiAnalysisError = error
                 self.isAnalyzingAI = false
             } catch is CancellationError {
                 self.logger.info("Scan cancelled.")
@@ -97,6 +101,7 @@ public final class DiskAnalyzer {
         isScanning = false
         isAnalyzingAI = false
         aiInsights = [:]
+        aiAnalysisError = nil
         rootItem = nil
     }
     
@@ -106,6 +111,7 @@ public final class DiskAnalyzer {
         isScanning = false
         isAnalyzingAI = false
         aiInsights = [:]
+        aiAnalysisError = nil
         rootItem = nil
         selectedURL = nil
         errorMessage = nil

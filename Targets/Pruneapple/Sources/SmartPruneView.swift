@@ -22,6 +22,20 @@ struct SmartPruneView: View {
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let aiError = diskAnalyzer.aiAnalysisError {
+                VStack(spacing: Metrics.spacingLarge) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: Metrics.iconLarge))
+                        .foregroundStyle(.orange)
+                    Text(aiError.contains("unavailable") ? String(localized: "AI Analysis Unavailable") : String(localized: "AI Analysis Failed"))
+                        .font(.headline)
+                    Text(aiError)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, Metrics.paddingDoubleExtraLarge)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if diskAnalyzer.aiInsights.isEmpty {
                 VStack(spacing: Metrics.spacingLarge) {
                     Image(systemName: "sparkles")
@@ -50,18 +64,16 @@ struct SmartPruneView: View {
                             }
                             Spacer()
                             
-                            if diskAnalyzer.aiInsights.values.contains(where: { !$0.isFallback }) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "cpu")
-                                    Text(String(localized: "Apple Intelligence Active"))
-                                }
-                                .font(.caption.bold())
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .foregroundStyle(Color.accentColor)
-                                .background(Color.accentColor.opacity(0.15))
-                                .clipShape(Capsule())
+                            HStack(spacing: 4) {
+                                Image(systemName: "cpu")
+                                Text(String(localized: "Apple Intelligence Active"))
                             }
+                            .font(.caption.bold())
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .foregroundStyle(Color.accentColor)
+                            .background(Color.accentColor.opacity(0.15))
+                            .clipShape(Capsule())
                         }
                         .padding(.horizontal)
                         .padding(.top, Metrics.paddingLarge)
@@ -147,18 +159,6 @@ struct SmartPruneRow: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .truncationMode(.head)
-                    
-                    Spacer()
-                    
-                    if insight.isFallback {
-                        Text(String(localized: "Fallback Heuristics"))
-                            .font(.system(size: 9, weight: .semibold))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .foregroundStyle(.orange)
-                            .background(Color.orange.opacity(0.15))
-                            .clipShape(Capsule())
-                    }
                 }
                 .padding(.top, 2)
             }
