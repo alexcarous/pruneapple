@@ -151,7 +151,7 @@ struct DiskMapView: View {
             return
         }
         
-        if r > range.upperBound {
+        if distance > range.upperBound {
             result.append(item)
             guard let children = item.children, !children.isEmpty, depth < Metrics.diskMapMaxDepth else { return }
             
@@ -167,7 +167,7 @@ struct DiskMapView: View {
                 if childFraction >= Metrics.diskMapMinFraction && childAngle > Metrics.diskMapMinAngle {
                     let childEnd = currentStart + childAngle
                     if angle >= currentStart && angle <= childEnd {
-                        hitTestNode(item: child, r: r, angle: angle, startAngle: currentStart, endAngle: childEnd, depth: depth + 1, maxRadius: maxRadius, result: &result)
+                        hitTestNode(item: child, distance: distance, angle: angle, startAngle: currentStart, endAngle: childEnd, depth: depth + 1, maxRadius: maxRadius, result: &result)
                         return
                     }
                 }
