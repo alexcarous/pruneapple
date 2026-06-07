@@ -228,8 +228,11 @@ struct InstructionRow: View {
 }
 
 struct AdvancedTab: View {
+    @Environment(\.openWindow) private var openWindow
     @AppStorage(AppStorageKeys.scanHiddenFiles.rawValue) private var scanHiddenFiles = false
     @AppStorage(AppStorageKeys.scanPackages.rawValue) private var scanPackages = false
+    @AppStorage(AppStorageKeys.hasDonated.rawValue) private var hasDonated = false
+    @AppStorage(AppStorageKeys.selectedAppIcon.rawValue) private var selectedAppIcon = "default"
     
     var body: some View {
         Form {
@@ -250,6 +253,35 @@ struct AdvancedTab: View {
                     isOn: $scanPackages
                 )
                 .help(String(localized: "When enabled, application bundles (.app) and frameworks (.framework) will be traversed as directories rather than treated as files."))
+            }
+            .padding(.vertical, Metrics.paddingMedium)
+            
+            Section(header: Text(String(localized: "Supporter Customization")).font(.headline)) {
+                if hasDonated {
+                    Picker(String(localized: "App Icon"), selection: $selectedAppIcon) {
+                        Text(String(localized: "Default (Red/Orange)")).tag("default")
+                        Text(String(localized: "Supporter (Neon Glow)")).tag("neon")
+                    }
+                    .pickerStyle(.radioGroup)
+                    .help(String(localized: "Choose a custom icon for the Dock and application menu."))
+                } else {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(String(localized: "Supporter Icons Locked"))
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Text(String(localized: "Support development to unlock custom, premium app icons!"))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Button(String(localized: "Support Developer")) {
+                            openWindow(id: "donation")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .padding(.vertical, 4)
+                }
             }
             .padding(.vertical, Metrics.paddingMedium)
             
