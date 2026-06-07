@@ -7,11 +7,28 @@ struct PruneappleApp: App {
     @State private var diskAnalyzer = DiskAnalyzer()
     @StateObject private var updateManager = UpdateManager()
     
+    @AppStorage(AppStorageKeys.hasDonated.rawValue) private var hasDonated = false
+    @AppStorage(AppStorageKeys.selectedAppIcon.rawValue) private var selectedAppIcon = "default"
+    
     init() {
         if NSClassFromString("XCTest") == nil {
             DispatchQueue.main.async {
                 NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
+                
+                // Apply custom app icon on launch
+                let savedIcon = UserDefaults.standard.string(forKey: AppStorageKeys.selectedAppIcon.rawValue) ?? "default"
+                Self.applyAppIcon(savedIcon)
+            }
+        }
+    }
+    
+    static func applyAppIcon(_ iconName: String) {
+        DispatchQueue.main.async {
+            if iconName == "neon" {
+                NSApp.applicationIconImage = NSImage(named: "AppIconNeon")
+            } else {
+                NSApp.applicationIconImage = nil
             }
         }
     }
@@ -24,9 +41,13 @@ struct PruneappleApp: App {
                 .ignoresSafeArea(.container, edges: .top)
                 .onOpenURL { url in
                     if url.scheme == "pruneapple" && url.host == "donate-success" {
+                        hasDonated = true
                         NSApp.activate(ignoringOtherApps: true)
                         openWindow(id: "thankYou")
                     }
+                }
+                .onChange(of: selectedAppIcon) { _, newValue in
+                    Self.applyAppIcon(newValue)
                 }
         }
         .windowStyle(.hiddenTitleBar)

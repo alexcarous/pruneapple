@@ -5,4 +5,6 @@ enum AppStorageKeys: String {
     case hasDismissedDonationBanner
     case scanHiddenFiles
     case scanPackages
+    case hasDonated
+    case selectedAppIcon
 }
