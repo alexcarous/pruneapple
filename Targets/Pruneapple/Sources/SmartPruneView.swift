@@ -34,6 +34,16 @@ struct SmartPruneView: View {
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, Metrics.paddingDoubleExtraLarge)
+                    
+                    if aiError.contains("unavailable") {
+                        Button(String(localized: "Turn on in System Settings")) {
+                            if let url = URL(string: "x-apple.systempreferences:com.apple.AppleIntelligence-Settings.extension") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding(.top, Metrics.paddingSmall)
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if diskAnalyzer.aiInsights.isEmpty {
@@ -55,7 +65,7 @@ struct SmartPruneView: View {
                     LazyVStack(spacing: Metrics.spacingMedium) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(String(localized: "Smart Prune Recommendations"))
+                                Text(String(localized: "Apple Intelligence Recommendations"))
                                     .font(.title2)
                                     .fontWeight(.bold)
                                 Text(String(localized: "On-device AI analysis of top files larger than 50MB."))
@@ -173,6 +183,37 @@ struct SmartPruneRow: View {
                 )
         )
         .padding(.horizontal)
+        .overlay(alignment: .trailing) {
+            HStack(spacing: Metrics.spacingSmall) {
+                Button(action: quickLook) {
+                    Image(systemName: "eye.fill")
+                        .font(.body.bold())
+                        .foregroundStyle(.secondary)
+                        .frame(width: 28, height: 28)
+                        .background(Color(NSColor.windowBackgroundColor))
+                        .clipShape(Circle())
+                        .shadow(color: Color.black.opacity(0.15), radius: 3)
+                }
+                .buttonStyle(.plain)
+                .help(String(localized: "Quick Look"))
+                
+                Button(action: revealInFinder) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.body.bold())
+                        .foregroundStyle(.secondary)
+                        .frame(width: 28, height: 28)
+                        .background(Color(NSColor.windowBackgroundColor))
+                        .clipShape(Circle())
+                        .shadow(color: Color.black.opacity(0.15), radius: 3)
+                }
+                .buttonStyle(.plain)
+                .help(String(localized: "Reveal in Finder"))
+            }
+            .padding(.trailing, 80) // Offset from Score Badge
+            .opacity(isHovered ? 1 : 0)
+            .scaleEffect(isHovered ? 1.0 : 0.95)
+            .allowsHitTesting(isHovered)
+        }
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.15)) {
                 isHovered = hovering
@@ -184,37 +225,6 @@ struct SmartPruneRow: View {
             }
             Button(String(localized: "Quick Look")) {
                 quickLook()
-            }
-        }
-        .overlay(alignment: .trailing) {
-            if isHovered {
-                HStack(spacing: Metrics.spacingSmall) {
-                    Button(action: quickLook) {
-                        Image(systemName: "eye.fill")
-                            .font(.body.bold())
-                            .foregroundStyle(.secondary)
-                            .frame(width: 28, height: 28)
-                            .background(Color(NSColor.windowBackgroundColor))
-                            .clipShape(Circle())
-                            .shadow(color: Color.black.opacity(0.15), radius: 3)
-                    }
-                    .buttonStyle(.plain)
-                    .help(String(localized: "Quick Look"))
-                    
-                    Button(action: revealInFinder) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.body.bold())
-                            .foregroundStyle(.secondary)
-                            .frame(width: 28, height: 28)
-                            .background(Color(NSColor.windowBackgroundColor))
-                            .clipShape(Circle())
-                            .shadow(color: Color.black.opacity(0.15), radius: 3)
-                    }
-                    .buttonStyle(.plain)
-                    .help(String(localized: "Reveal in Finder"))
-                }
-                .padding(.trailing, 80) // Offset from Score Badge
-                .transition(.opacity.combined(with: .scale(scale: 0.95)))
             }
         }
     }
