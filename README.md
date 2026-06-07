@@ -1,6 +1,6 @@
 # Pruneapple ✂🍍
 
-Pruneapple is a modern, open source, native, and read-only macOS app that scans your disk to find those forgotten files and folders. It never deletes anything or modifies your system. It's just a tool to help you see what's going on, and then you can decide what to do by revealing the files in Finder.
+Pruneapple is a beautiful liquid glass, open source, modern, and read-only macOS app that scans your disk to find those forgotten files and folders. It never deletes anything or modifies your system. It's just a tool to help you see what's going on, and then you can decide what to do by revealing the files in Finder.
 
 ## Why this app?
 
