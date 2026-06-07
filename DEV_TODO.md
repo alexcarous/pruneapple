@@ -23,7 +23,14 @@ This document outlines the manual setup steps required to publish Pruneapple, co
 
 ---
 
-## 3. Notarization & Code Signing (Choose one path)
+## 3. In-App Donor Acknowledgement
+- [ ] Implement a visual way to thank/acknowledge donors inside the app when `hasDonated == true`. Ideas:
+  - Add a small gold "Supporter" badge or star next to the app name in the **About** tab.
+  - Show a small "Thank you for your support!" label in the footer of the welcome screen instead of the standard scan rules text.
+
+---
+
+## 4. Notarization & Code Signing (Choose one path)
 
 ### Path A: Official Apple Developer Program ($99/year)
 - [ ] Register at [developer.apple.com](https://developer.apple.com).
@@ -45,7 +52,7 @@ This document outlines the manual setup steps required to publish Pruneapple, co
 
 ---
 
-## 4. Sparkle Updates Setup
+## 5. Sparkle Updates Setup
 - [ ] Generate a public/private key pair for Sparkle updates using their tool:
   ```bash
   ./Pods/Sparkle/bin/generate_keys
@@ -56,7 +63,7 @@ This document outlines the manual setup steps required to publish Pruneapple, co
 
 ---
 
-## 5. Homebrew Cask Setup (Optional)
+## 6. Homebrew Cask Setup (Optional)
 If you want to distribute Pruneapple via Homebrew (especially helpful as a free Gatekeeper bypass), follow these steps:
 
 - [ ] Host the compiled `Pruneapple.zip` or `.dmg` file publicly (e.g., via GitHub Releases or your server).
