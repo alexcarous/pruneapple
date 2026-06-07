@@ -9,8 +9,10 @@ struct PruneappleApp: App {
     
     init() {
         if NSClassFromString("XCTest") == nil {
-            NSApp.setActivationPolicy(.regular)
-            NSApp.activate(ignoringOtherApps: true)
+            DispatchQueue.main.async {
+                NSApp.setActivationPolicy(.regular)
+                NSApp.activate(ignoringOtherApps: true)
+            }
         }
     }
     

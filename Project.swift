@@ -23,6 +23,7 @@ let project = Project(
                 "NSNetworkVolumesUsageDescription": "Pruneapple requires access to network drives to scan their contents.",
                 "SUFeedURL": "https://alex.caro.us/pruneapple/appcast.xml",
                 "SUPublicEDKey": "O6PUodfxeFe6K3xz1CBrg7yoYGtoC8AzeoNwSFl9BPE=",
+                "SUEnableInstallerLauncherService": true,
                 "CFBundleURLTypes": [
                     [
                         "CFBundleURLSchemes": ["pruneapple"],
