@@ -45,7 +45,7 @@ struct DonationView: View {
             id: "mokapot",
             name: String(localized: "Buy Alex a moka pot"),
             price: "$50",
-            description: String(localized: "A substantial contribution to unlock major future updates."),
+            description: String(localized: "A substantial contribution to support major future updates."),
             url: "https://donate.stripe.com/aFaaEY2t2dfYfid55DbV60a?utm_source=pruneapple&utm_medium=app&utm_campaign=donation&utm_content=mokapot",
             icon: "mokapot-donation",
             gradientColors: [Color.red, Color.orange]
@@ -72,7 +72,7 @@ struct DonationView: View {
                             HStack {
                                 Image(systemName: "ladybug.fill")
                                     .foregroundColor(.green)
-                                Text(String(localized: "Developer Test Mode: Supporter Features Unlocked (5 min)"))
+                                Text(String(localized: "Developer Test Mode: Supporter Status Activated (5 min)"))
                                     .fontWeight(.semibold)
                                     .foregroundColor(.green)
                             }
@@ -310,7 +310,7 @@ struct DonationView: View {
         if key.hasPrefix("cs_") && key.count > 15 {
             hasDonated = true
             redeemIsSuccess = true
-            redeemStatusMessage = String(localized: "Thank you! Supporter features activated successfully.")
+            redeemStatusMessage = String(localized: "Thank you! Supporter status activated successfully.")
             enteredLicenseKey = ""
         } else {
             redeemIsSuccess = false
