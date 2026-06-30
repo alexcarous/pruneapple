@@ -1,6 +1,6 @@
 # Pruneapple ✂🍍
 
-[![Download Pre-Compiled App](https://img.shields.io/badge/Download-Ready--to--Run%20(.app)--$9.99-brightgreen?style=for-the-badge&logo=apple)](https://alex.caro.us)
+[![Download Pre-Compiled App](https://img.shields.io/badge/Download-Free--Release-brightgreen?style=for-the-badge&logo=apple)](https://github.com/alexcarous/pruneapple/releases)
 [![Build from Source](https://img.shields.io/badge/Source%20Code-Open--Source-orange?style=for-the-badge&logo=github)](https://github.com/alexcarous/pruneapple)
 
 Pruneapple is a beautiful Liquid Glass, open-source, read-only macOS application that scans your disk to find forgotten files and folders. It is designed for safety: it never deletes anything or modifies your system, allowing you to audit your files risk-free and reveal them in Finder when you're ready to clean up.
@@ -9,17 +9,36 @@ Pruneapple is a beautiful Liquid Glass, open-source, read-only macOS application
 
 ## Download Options: Convenience vs. Code
 
-Pruneapple is fully open-source. We believe in transparency and giving you total control over your system. You can choose to download our ready-to-run release or build it yourself.
+Pruneapple is fully open-source and free. We believe in transparency and giving you total control over your system. You can choose to download our pre-compiled release or build it yourself.
 
-| Feature | Pre-Compiled (`.app` download) | Build from Source (Free) |
+| Feature | Pre-Compiled (GitHub Releases) | Build from Source (Xcode) |
 | :--- | :---: | :---: |
-| **Ready-to-Run** | ✅ One-click install | ❌ Requires Xcode, Tuist, & Mise |
-| **Gatekeeper Signed** | ✅ Safe out-of-the-box | ❌ Requires self-signing / bypass |
+| **Ready-to-Run** | ✅ Download & run (.zip) | ❌ Requires Xcode, Tuist, & Mise |
+| **Gatekeeper Support** | ⚠️ Requires manual bypass | ❌ Requires self-signing / bypass |
 | **Auto-Updates** | ✅ Seamless via Sparkle | ❌ Requires manual `git pull` & rebuild |
-| **Supports Dev** | ✅ Direct Support | 💛 (Spread the word!) |
+| **Price** | Free | Free |
 
-### [👉 Get the Pre-Compiled App ($9.99)](https://alex.caro.us)
-*Directly supports independent development, includes automatic updates, and runs securely without macOS security warning overrides.*
+### [👉 Download the Pre-Compiled App (Free)](https://github.com/alexcarous/pruneapple/releases)
+
+> [!NOTE]
+> **Gatekeeper Bypass:** Because the pre-compiled binary is distributed directly and is unsigned, macOS will block it on first launch with a quarantine warning.
+> To run it:
+> 1. Drag **Pruneapple** to your `/Applications` directory.
+> 2. Right-click (or Control-click) the application icon and select **Open**.
+> 3. Click **Open** in the confirmation dialog.
+>
+> *Alternatively, run this command in your Terminal:*
+> ```bash
+> xattr -d com.apple.quarantine /Applications/Pruneapple.app
+> ```
+
+---
+
+## Supporting the Project
+
+If you love using Pruneapple and want to support its ongoing development, you can make a voluntary contribution:
+* **Stripe Donations:** Donate via Stripe inside the app (**Help > Support Pruneapple**).
+* **Star the Repo:** Give us a ⭐ on GitHub to help others find the project!
 
 ---
 
