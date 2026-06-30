@@ -52,7 +52,7 @@ If you love using Pruneapple and want to support its ongoing development, you ca
 
 ---
 
-## Building from Source (Free)
+## Building from Source
 
 If you prefer to compile Pruneapple yourself, you will need macOS 15.0+ and Xcode 16.0+ installed.
 
