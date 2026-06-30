@@ -33,8 +33,12 @@ Tuist/.build/
 
 # AI Artifacts
 /*.md
+GEMINI.md
+DEV_TODO.md
+ARCHITECTURE.md
+
+
 !/README.md
 !/CONTRIBUTING.md
 !/CHANGELOG.md
-!/GEMINI.md
-!/DEV_TODO.md
+!/Architecture.md
