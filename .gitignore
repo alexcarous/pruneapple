@@ -31,6 +31,11 @@ Tuist/.build/
 *.dmg
 *.pkg
 
+# Sparkle Private Keys
+dsa_priv.key
+ed_priv.key
+*.key
+
 # AI Artifacts
 /*.md
 GEMINI.md
