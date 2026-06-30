@@ -1,4 +1,4 @@
-# Pruneapple
+# Pruneapple ✂🍍
 
 [![Download Pre-Compiled App](https://img.shields.io/badge/Download-Free--Release-brightgreen?style=for-the-badge&logo=apple)](https://github.com/alexcarous/pruneapple/releases)
 [![Build from Source](https://img.shields.io/badge/Source%20Code-Open--Source-orange?style=for-the-badge&logo=github)](https://github.com/alexcarous/pruneapple)
