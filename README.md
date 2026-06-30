@@ -1,4 +1,4 @@
-# Pruneapple ✂🍍
+# Pruneapple
 
 [![Download Pre-Compiled App](https://img.shields.io/badge/Download-Free--Release-brightgreen?style=for-the-badge&logo=apple)](https://github.com/alexcarous/pruneapple/releases)
 [![Build from Source](https://img.shields.io/badge/Source%20Code-Open--Source-orange?style=for-the-badge&logo=github)](https://github.com/alexcarous/pruneapple)
@@ -9,19 +9,19 @@ Pruneapple is a beautiful Liquid Glass, open-source, read-only macOS application
 
 ## Download Options: Convenience vs. Code
 
-Pruneapple is fully open-source and free. We believe in transparency and giving you total control over your system. You can choose to download our pre-compiled release or build it yourself.
+Pruneapple is fully open-source and free. You can choose to download our precompiled release or build it yourself.
 
-| Feature | Pre-Compiled (GitHub Releases) | Build from Source (Xcode) |
+| Feature | Precompiled (GitHub Releases) | Build from Source (Xcode) |
 | :--- | :---: | :---: |
-| **Ready-to-Run** | ✅ Download & run (.zip) | ❌ Requires Xcode, Tuist, & Mise |
-| **Gatekeeper Support** | ⚠️ Requires manual bypass | ❌ Requires self-signing / bypass |
-| **Auto-Updates** | ✅ Seamless via Sparkle | ❌ Requires manual `git pull` & rebuild |
+| **Ready-to-Run** | Yes (download `.zip`) | No (requires Xcode, Tuist, & mise) |
+| **Gatekeeper Support** | Requires manual bypass | Requires self-signing or bypass |
+| **Auto-Updates** | Yes (via Sparkle) | No (requires manual rebuilding) |
 | **Price** | Free | Free |
 
-### [👉 Download the Pre-Compiled App (Free)](https://github.com/alexcarous/pruneapple/releases)
+### [Download the Precompiled App](https://github.com/alexcarous/pruneapple/releases)
 
 > [!NOTE]
-> **Gatekeeper Bypass:** Because the pre-compiled binary is distributed directly and is unsigned, macOS will block it on first launch with a quarantine warning.
+> **Gatekeeper Bypass:** Because the precompiled binary is distributed directly and is unsigned, macOS will block it on first launch with a quarantine warning.
 > To run it:
 > 1. Drag **Pruneapple** to your `/Applications` directory.
 > 2. Right-click (or Control-click) the application icon and select **Open**.
@@ -38,7 +38,7 @@ Pruneapple is fully open-source and free. We believe in transparency and giving 
 
 If you love using Pruneapple and want to support its ongoing development, you can make a voluntary contribution:
 * **Stripe Donations:** Donate via Stripe inside the app (**Help > Support Pruneapple**).
-* **Star the Repo:** Give us a ⭐ on GitHub to help others find the project!
+* **Star the Repository:** Support the project by starring the repository on GitHub.
 
 ---
 
