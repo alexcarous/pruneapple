@@ -212,18 +212,9 @@ struct ThankYouView: View {
 struct WelcomeView: View {
     @Environment(DiskAnalyzer.self) private var diskAnalyzer
     @Binding var dragOver: Bool
-    @Environment(\.openWindow) private var openWindow
-    
-    @AppStorage(AppStorageKeys.successfulScanCount.rawValue) private var successfulScanCount = 0
-    @AppStorage(AppStorageKeys.hasDismissedDonationBanner.rawValue) private var hasDismissedDonationBanner = false
     
     var body: some View {
         VStack(spacing: Metrics.spacingNone) {
-            if successfulScanCount >= 3 && !hasDismissedDonationBanner {
-                donationBanner
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            }
-            
             VStack(spacing: Metrics.spacingExtraLarge) {
                 Spacer()
                 
@@ -255,64 +246,6 @@ struct WelcomeView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(dragOver ? Color.accentColor.opacity(0.05) : Color.clear)
         }
-    }
-    
-    private var donationBanner: some View {
-        HStack(spacing: Metrics.spacingLarge) {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [.pink, .purple],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 36, height: 36)
-                
-                Image(systemName: "heart.fill")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(.white)
-            }
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "Enjoying Pruneapple?"))
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                
-                Text(String(localized: "You've completed \(successfulScanCount) successful scans! Please consider supporting development."))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Spacer()
-            
-            Button(String(localized: "Support Developer")) {
-                openWindow(id: "donation")
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.regular)
-            
-            Button(action: {
-                withAnimation(.spring()) {
-                    hasDismissedDonationBanner = true
-                }
-            }) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.secondary)
-                    .font(.title3)
-            }
-            .buttonStyle(.plain)
-            .help(String(localized: "Dismiss"))
-        }
-        .padding(.horizontal, Metrics.paddingExtraLarge)
-        .padding(.vertical, Metrics.paddingLarge)
-        .background(
-            RoundedRectangle(cornerRadius: Metrics.cornerRadiusMedium)
-                .fill(Color(NSColor.windowBackgroundColor))
-                .shadow(color: Color.black.opacity(0.08), radius: 6, y: 2)
-        )
-        .padding([.horizontal, .top], Metrics.paddingExtraLarge)
     }
     
     private func selectFolderAndScan() {
