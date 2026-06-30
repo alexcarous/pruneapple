@@ -4,6 +4,7 @@
 .env.local
 .env.*.local
 .scratchpad/
+temp/
 
 # Build folders
 build/
