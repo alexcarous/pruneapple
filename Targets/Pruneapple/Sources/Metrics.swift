@@ -59,4 +59,21 @@ public enum Metrics {
     public static let diskMapMaxRadiusRatio: CGFloat = 0.95
     public static let diskMapMinFraction: Double = 0.005
     public static let diskMapMinAngle: Double = 0.008
+
+    // Pineapple Chart Shape
+    public static let pineappleScaleX: CGFloat = 0.76        // horizontal squish (< 1 = narrower)
+    public static let pineappleScaleY: CGFloat = 1.0         // vertical scale
+    public static let pineappleBottomBulge: CGFloat = 0.07   // extra width for lower half
+    public static let pineappleArcSteps: Int = 3             // degrees per line segment (lower = smoother)
+
+    // Pineapple Segment Gaps
+    public static let pineappleSegmentGap: CGFloat = 1.5     // stroke width between segments
+    public static let pineappleAngleInset: Double = 0.006    // radians inset per wedge edge
+    public static let pineappleRadiusInset: CGFloat = 0.5    // pt inset on inner/outer radius
+
+    // Pineapple Crown
+    public static let pineappleCrownHeadroom: CGFloat = 0.18 // how far body shifts down as fraction of maxRadius
+    public static let pineappleBodyScale: CGFloat = 0.84     // body shrinks to leave room for crown
+    public static let pineappleLeafHeightRatio: CGFloat = 0.38  // leaf height as fraction of maxRadius
+    public static let pineappleLeafWidthRatio: CGFloat = 0.16   // leaf width as fraction of maxRadius
 }
