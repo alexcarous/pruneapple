@@ -82,7 +82,23 @@ struct DonationView: View {
                             .cornerRadius(Metrics.cornerRadiusMedium)
                             .transition(.move(edge: .top).combined(with: .opacity))
                         }
-                        
+
+                        if hasDonated {
+                            HStack(spacing: Metrics.spacingSmall) {
+                                Image(systemName: "heart.fill")
+                                    .foregroundStyle(.pink)
+                                Text(String(localized: "You're a supporter — thank you! Every contribution keeps Pruneapple growing."))
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.vertical, 10)
+                            .padding(.horizontal, Metrics.paddingMedium)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.pink.opacity(0.08))
+                            .cornerRadius(Metrics.cornerRadiusMedium)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+
                         // Header
                         VStack(spacing: Metrics.spacingVerySmall) {
                             Image(systemName: "heart.circle.fill")
