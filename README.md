@@ -7,7 +7,7 @@ Pruneapple is an open-source, read-only macOS application that scans your disk t
 You can download the precompiled app or build it from source.
 
 ### Precompiled App
-Download the latest `Pruneapple.zip` from the [Releases](https://github.com/alexcarous/pruneapple/releases) page and drag the app to your `/Applications` folder.
+Download the latest `Pruneapple.dmg` from the [Releases](https://github.com/alexcarous/pruneapple/releases) page and drag the app to your `/Applications` folder.
 
 > [!NOTE]
 > Because the precompiled binary is distributed directly and is unsigned, macOS will show a Gatekeeper warning on first launch. To open it, right-click (or Control-click) the application icon, select **Open**, and click **Open** in the confirmation dialog. Alternatively, clear the quarantine attribute:
