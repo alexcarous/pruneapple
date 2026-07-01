@@ -15,7 +15,7 @@ let project = Project(
                 "CFBundleName": "Pruneapple",
                 "CFBundleShortVersionString": "1.0.0",
                 "CFBundleVersion": "1",
-                "NSHumanReadableCopyright": "Copyright © 2026 Alexander Caro.\nAll rights reserved.",
+                "NSHumanReadableCopyright": "Copyright © 2026 Alexander Caro.\nReleased under the MIT License.",
                 "NSDesktopFolderUsageDescription": "Pruneapple requires access to your Desktop to calculate folder sizes.",
                 "NSDocumentsFolderUsageDescription": "Pruneapple requires access to your Documents to calculate folder sizes.",
                 "NSDownloadsFolderUsageDescription": "Pruneapple requires access to your Downloads to calculate folder sizes.",
