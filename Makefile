@@ -28,8 +28,8 @@ run: build
 	open ./build/Build/Products/Release/Pruneapple.app
 
 release: build
-	@echo "Zipping app (preserving symlinks)..."
-	cd build/Build/Products/Release/ && rm -f Pruneapple.zip && zip -ry Pruneapple.zip Pruneapple.app
+	@echo "Zipping app (preserving symlinks and stripping metadata for privacy)..."
+	cd build/Build/Products/Release/ && rm -f Pruneapple.zip && xattr -cr Pruneapple.app && zip -ryX Pruneapple.zip Pruneapple.app
 	@echo "Reading version from Info.plist..."
 	$(eval VERSION := $(shell defaults read $(PWD)/build/Build/Products/Release/Pruneapple.app/Contents/Info.plist CFBundleShortVersionString))
 	@echo "Generating appcast.xml for version $(VERSION)..."
