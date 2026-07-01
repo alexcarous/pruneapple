@@ -268,6 +268,7 @@ struct AdvancedTab: View {
 
 struct AboutTab: View {
     @Binding var activeTab: SettingsView.Tab
+    @AppStorage(AppStorageKeys.hasDonated.rawValue) private var hasDonated = false
     
     var body: some View {
         VStack(spacing: Metrics.spacingLarge) {
@@ -284,7 +285,19 @@ struct AboutTab: View {
                 Text(String(localized: "Version 1.0.0 (Build 1)"))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-                
+
+                if hasDonated {
+                    Label(String(localized: "Supporter"), systemImage: "star.fill")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color(red: 0.8, green: 0.6, blue: 0.1))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color(red: 0.8, green: 0.6, blue: 0.1).opacity(0.12))
+                        .clipShape(Capsule())
+                        .padding(.top, Metrics.paddingVerySmall)
+                }
+
                 Link("Alexander Caro", destination: URL(string: "https://alex.caro.us")!)
                     .font(.subheadline)
                     .foregroundColor(.accentColor)
@@ -293,8 +306,13 @@ struct AboutTab: View {
                 Button(action: {
                     activeTab = .donation
                 }) {
-                    Label(String(localized: "Support Developer"), systemImage: "heart.fill")
-                        .foregroundColor(.pink)
+                    Label(
+                        hasDonated
+                            ? String(localized: "Support Again")
+                            : String(localized: "Support Developer"),
+                        systemImage: "heart.fill"
+                    )
+                    .foregroundColor(.pink)
                 }
                 .buttonStyle(.bordered)
                 .padding(.top, Metrics.paddingSmall)
