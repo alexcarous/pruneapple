@@ -46,7 +46,7 @@ struct PruneappleApp: App {
             }
             CommandGroup(replacing: .help) {
                 Button(String(localized: "Pruneapple Help")) {
-                    if let url = URL(string: "https://alex.caro.us") {
+                    if let url = URL(string: "https://alex.caro.us/pruneapple/help") {
                         NSWorkspace.shared.open(url)
                     }
                 }
