@@ -28,25 +28,16 @@ run: build
 	open ./build/Build/Products/Release/Pruneapple.app
 
 release: build
-	@echo "Checking if create-dmg is installed..."
-	@which create-dmg > /dev/null || (echo "❌ Error: 'create-dmg' is not installed. Run 'brew install create-dmg' first." && exit 1)
 	@echo "Setting up packaging directory..."
 	rm -rf build/Build/Products/Release/dmg_source
 	mkdir -p build/Build/Products/Release/dmg_source
-	@echo "Copying app and stripping local metadata..."
+	@echo "Copying app and creating Applications symlink..."
 	cp -R build/Build/Products/Release/Pruneapple.app build/Build/Products/Release/dmg_source/
 	xattr -cr build/Build/Products/Release/dmg_source/Pruneapple.app
-	@echo "Generating styled DMG..."
+	ln -s /Applications build/Build/Products/Release/dmg_source/Applications
+	@echo "Generating standard DMG..."
 	rm -f build/Build/Products/Release/Pruneapple.dmg
-	create-dmg \
-	  --volname "Pruneapple Installer" \
-	  --window-pos 200 120 \
-	  --window-size 600 400 \
-	  --icon-size 100 \
-	  --icon "Pruneapple.app" 175 120 \
-	  --app-drop-link 425 120 \
-	  "build/Build/Products/Release/Pruneapple.dmg" \
-	  "build/Build/Products/Release/dmg_source/"
+	hdiutil create -srcfolder build/Build/Products/Release/dmg_source -volname "Pruneapple" -fs HFS+ -format UDZO build/Build/Products/Release/Pruneapple.dmg
 	@echo "Cleaning up packaging directory..."
 	rm -rf build/Build/Products/Release/dmg_source
 	@echo "Reading version from Info.plist..."
