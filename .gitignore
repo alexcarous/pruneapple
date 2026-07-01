@@ -36,7 +36,7 @@ dsa_priv.key
 ed_priv.key
 *.key
 
-# AI Artifacts
+# Documentation & Scratchpads
 /*.md
 GEMINI.md
 DEV_TODO.md
